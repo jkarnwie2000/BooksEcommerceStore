@@ -4,6 +4,12 @@
 
 ![Books E-commerce Store Project](./booksecommercestoreproject.png)
 
+## 🛠️ Tech Stack
+
+* React — User interface development
+* JavaScript (ES6+) — Interactive functionality
+* React Router — Handles navigation between pages or views
+
 ## Books E-commerce Store App
 
 🔗 **Live Demo:** [View Live Website](https://books-ecommerce-gold.vercel.app/)
