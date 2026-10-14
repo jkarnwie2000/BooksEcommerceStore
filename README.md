@@ -6,9 +6,15 @@
 
 ## 🛠️ Tech Stack
 
-* React — User interface development
-* JavaScript (ES6+) — Interactive functionality
-* React Router — Handles navigation between pages or views
+* React — User interface development.
+* JavaScript (ES6+) — Interactive functionality.
+* React Router — Handles navigation between pages or views.
+
+### 🚀 Key Features
+
+*  📚 Interactive Shopping Cart: Allows customers to select books, add up to 99 items to their cart, and manage their purchases with ease.
+*  ⚡ Dynamic Book Sorting: Enables shoppers to sort books by price and customer ratings for a more personalized shopping experience.
+*  🎯 Automated Price Calculation: Automatically calculates the subtotal, sales tax, and total purchase cost for accurate, real-time checkout estimates.
 
 ## Books E-commerce Store App
 
