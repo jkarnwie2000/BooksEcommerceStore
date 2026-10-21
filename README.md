@@ -992,6 +992,124 @@ Contributions and improvements are welcome.
 
 Add the appropriate license information for your project here.
 
+## ✅ Testing
+
+This project uses **Vitest** and **React Testing Library** to test the functionality, rendering, and behavior of the Books E-commerce Website. The test suite contains **15 test files** located in the `src` directory, covering reusable UI components, page components, navigation, and key shopping interface elements.
+
+### Testing Tools
+
+* **[Vitest](https://vitest.dev/)** — A fast testing framework compatible with Vite-style testing workflows. It provides the test runner, assertions, and test execution environment.
+* **[React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)** — Tests React components from the user's perspective by checking rendered content and interacting with elements.
+* **[@testing-library/jest-dom](https://github.com/testing-library/jest-dom)** — Provides additional DOM assertions, such as checking whether an element is present in the document, if configured in the project.
+
+### Test Coverage
+
+The project contains 15 test files designed to verify the rendering and behavior of the website's main components and pages.
+
+| Test File             | Component or Page | Testing Focus                                                                  |
+| --------------------- | ----------------- | ------------------------------------------------------------------------------ |
+| `Book.test.jsx`       | `Book.jsx`        | Verifies that book information, images, titles, and prices render correctly.   |
+| `BookInfo.test.jsx`   | `BookInfo.jsx`    | Tests the book details page and the display of individual book information.    |
+| `Books.test.jsx`      | `Books.jsx`       | Checks that the books page renders its content and book listings correctly.    |
+| `Cart.test.jsx`       | `Cart.jsx`        | Tests the shopping cart interface, including its content and empty-cart state. |
+| `Discounted.test.jsx` | `Discounted.jsx`  | Verifies that discounted books and their pricing information render correctly. |
+| `Explore.test.jsx`    | `Explore.jsx`     | Checks that the Explore section and its associated content render correctly.   |
+| `Featured.test.jsx`   | `Featured.jsx`    | Tests the display of featured books and their associated information.          |
+| `Footer.test.jsx`     | `Footer.jsx`      | Verifies that the footer renders its expected content and links.               |
+| `Highlight.test.jsx`  | `Highlight.jsx`   | Tests the rendering of individual highlight elements.                          |
+| `Highlights.test.jsx` | `Highlights.jsx`  | Checks that the Highlights section displays its content correctly.             |
+| `Home.test.jsx`       | `Home.jsx`        | Tests the home page and verifies that its main content renders correctly.      |
+| `Landing.test.jsx`    | `Landing.jsx`     | Checks the landing section and its introductory content.                       |
+| `Nav.test.jsx`        | `Nav.jsx`         | Tests the navigation component and the rendering of navigation links.          |
+| `Price.test.jsx`      | `Price.jsx`       | Verifies that book prices are displayed in the expected format.                |
+| `Rating.test.jsx`     | `rating.jsx`      | Tests the rendering of book ratings.                                           |
+
+**Note:** The testing focus described above is based on the component names and project structure. The exact assertions and behaviors covered by each test depend on the implementation of the corresponding test files.
+
+### Running the Tests
+
+Follow these steps to execute the test suite locally.
+
+#### 1. Install Dependencies
+
+Make sure you have [Node.js](https://nodejs.org/) installed. Open a terminal in the project's root directory and run:
+
+```bash
+npm install
+```
+
+This installs the project dependencies defined in `package.json`, including the testing libraries configured for the project.
+
+#### 2. Run All Tests
+
+Execute the following command to run the test suite:
+
+```bash
+npx vitest run
+```
+
+This runs the available Vitest tests once and exits after execution. The terminal displays the results, including the number of test files and individual tests that passed or failed.
+
+Alternatively, if the project defines a test script in `package.json`, you can run:
+
+```bash
+npm test
+```
+
+Use this command only if the `test` script is configured to invoke Vitest.
+
+#### 3. Run Tests in Watch Mode
+
+To run Vitest interactively and rerun tests when relevant files change, use:
+
+```bash
+npx vitest
+```
+
+Watch mode is useful during development because it provides feedback as you modify components and tests.
+
+#### 4. Run a Specific Test File
+
+To execute an individual test file, provide its path:
+
+```bash
+npx vitest run src/Book.test.jsx
+```
+
+For example, to test the shopping cart page only:
+
+```bash
+npx vitest run src/Cart.test.jsx
+```
+
+You can replace the filename with any of the other test files listed above.
+
+### Test Configuration
+
+The project includes a `vitest.config.js` file at the root of the repository. This file contains the Vitest configuration used by the test runner.
+
+The project also uses React Testing Library to render components and inspect their output. Depending on the configuration, a DOM testing environment such as `jsdom` and a setup file for `@testing-library/jest-dom` may be required.
+
+Ensure that the configuration supports JSX and that the required testing dependencies are installed before running the suite.
+
+### Testing Goals
+
+The test suite helps verify that:
+
+* Reusable UI components render their expected content.
+* Book titles, images, prices, and ratings display correctly.
+* The home page and book listing pages render their main sections.
+* The shopping cart displays its expected content and empty state.
+* Navigation elements and page-level components render as intended.
+* Component changes can be checked for regressions during development.
+
+### Expected Results
+
+When the tests pass, Vitest reports successful test files and test cases in the terminal. If a test fails, review the error message to identify the failing assertion or component, make the necessary changes, and rerun the affected test.
+
+**Testing status:** The repository contains 15 test files. Run the test suite locally to verify the current results before reporting that all tests pass.
+
+
 ## Available Scripts
 
 In the project directory, you can run:
