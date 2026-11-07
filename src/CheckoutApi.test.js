@@ -43,6 +43,7 @@ test("uses server-side prices and ignores unknown books or bad quantities", asyn
   expect(args.shipping_address_collection.allowed_countries).toContain("LR");
   expect(args.allowed_payment_method_types).toEqual(["card"]);
   expect(args.payment_method_types).toBeUndefined();
+  expect(args.wallet_options).toEqual({ link: { display: "never" } });
   expect(args.phone_number_collection).toEqual({ enabled: true });
   expect(args.success_url).toBe("https://shop.test/checkout/success?session_id={CHECKOUT_SESSION_ID}");
 });
@@ -68,6 +69,7 @@ test("falls back to Dashboard payment methods if Stripe rejects the card filter"
   expect(res.status).toHaveBeenCalledWith(200);
   expect(res.json).toHaveBeenCalledWith({ url: "https://checkout.stripe.com/fallback" });
   expect(create.mock.calls[1][0].allowed_payment_method_types).toBeUndefined();
+  expect(create.mock.calls[1][0].wallet_options).toBeUndefined();
   expect(create.mock.calls[1][0].shipping_address_collection).toBeDefined();
 });
 
@@ -80,4 +82,20 @@ test("other Stripe errors are not retried", async () => {
 
   expect(res.status).toHaveBeenCalledWith(500);
   expect(create).toHaveBeenCalledTimes(1);
+});
+
+test("also falls back if Stripe rejects the Link wallet setting", async () => {
+  create
+    .mockRejectedValueOnce(Object.assign(new Error("invalid"), {
+      type: "StripeInvalidRequestError",
+      param: "wallet_options[link][display]",
+    }))
+    .mockResolvedValueOnce({ url: "https://checkout.stripe.com/fallback" });
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+
+  const res = mockRes();
+  await handler({ method: "POST", headers: {}, body: { items: [{ id: 1, quantity: 1 }] } }, res);
+
+  expect(res.status).toHaveBeenCalledWith(200);
+  expect(create).toHaveBeenCalledTimes(2);
 });
