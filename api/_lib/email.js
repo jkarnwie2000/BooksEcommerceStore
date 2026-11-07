@@ -118,15 +118,58 @@ function addressText(order) {
   return [order.shipping.name, ...addressLines(order.shipping.address)].join("\n");
 }
 
-function layout(title, body) {
+// Email-safe layout: nested tables with inline styles and bgcolor attributes
+// render the same in Gmail, Outlook, Apple Mail, Yahoo and mobile apps.
+// Every email gets the same purple banner with the store name.
+function layout(title, body, preheader = "") {
+  const store = escapeHtml(STORE_NAME);
   return `<!doctype html>
-<html><body style="margin:0;padding:24px;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#242424">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;padding:32px">
-    <h1 style="margin:0 0 4px;font-size:22px;color:#7342d6">${escapeHtml(STORE_NAME)}</h1>
-    <h2 style="margin:0 0 24px;font-size:18px">${escapeHtml(title)}</h2>
-    ${body}
-  </div>
-</body></html>`;
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>${escapeHtml(title)}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f5f5">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f5f5f5" style="background-color:#f5f5f5">
+  <tr>
+    <td align="center" style="padding:24px 12px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="max-width:560px;background-color:#ffffff;border-radius:8px;font-family:Arial,Helvetica,sans-serif;color:#242424">
+        <tr>
+          <td bgcolor="#7342d6" align="center" style="background-color:#7342d6;padding:28px 32px;border-radius:8px 8px 0 0">
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:32px;font-weight:bold;color:#ffffff">&#128218; ${store}</div>
+            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#e6dcfa;padding-top:4px">Your online library</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:22px;color:#242424">
+            <h2 style="margin:0 0 24px;font-size:20px;line-height:26px;color:#242424">${escapeHtml(title)}</h2>
+            ${body}
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#f0ebfb" align="center" style="background-color:#f0ebfb;padding:16px 32px;border-radius:0 0 8px 8px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#6b6b6b">
+            &copy; ${new Date().getFullYear()} ${store}
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
+}
+
+// Plain-text version header, for email apps that show text instead of HTML.
+function textBanner() {
+  const line = "=".repeat(STORE_NAME.length);
+  return `${line}
+${STORE_NAME}
+${line}
+
+`;
 }
 
 export function customerConfirmationEmail(order) {
@@ -140,9 +183,10 @@ export function customerConfirmationEmail(order) {
      ${itemsHtml(order)}
      <h3 style="font-size:16px;margin:24px 0 8px">Shipping to</h3>
      ${addressHtml(order)}
-     <p style="margin-top:24px">Questions about your order? Just reply to this email.</p>`
+     <p style="margin-top:24px">Questions about your order? Just reply to this email.</p>`,
+    `Thank you for your order! Order #${order.number}: ${money(order.total)}`
   );
-  const text = `${greeting}
+  const text = `${textBanner()}${greeting}
 
 Thank you for your order! We've received your payment and are getting your books ready.
 
@@ -170,9 +214,10 @@ export function businessNotificationEmail(order) {
      ${addressHtml(order)}
      <h3 style="font-size:16px;margin:24px 0 8px">Items</h3>
      ${itemsHtml(order)}
-     <p style="margin-top:24px;color:#6b6b6b;font-size:13px">Stripe session: ${escapeHtml(order.id)}</p>`
+     <p style="margin-top:24px;color:#6b6b6b;font-size:13px">Stripe session: ${escapeHtml(order.id)}</p>`,
+    `New order #${order.number}: ${money(order.total)}`
   );
-  const text = `New order #${order.number} (${new Date(order.created).toUTCString()})
+  const text = `${textBanner()}New order #${order.number} (${new Date(order.created).toUTCString()})
 
 Customer:
 ${contact.join("\n") || "Not provided"}

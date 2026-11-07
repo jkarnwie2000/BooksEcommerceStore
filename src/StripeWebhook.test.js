@@ -185,3 +185,14 @@ test("Stripe retries never send the same email twice", async () => {
   await POST(signedRequest(paidEvent));
   expect(sendMail).not.toHaveBeenCalled();
 });
+
+test("both emails carry the store-name banner, in HTML and plain text", async () => {
+  await POST(signedRequest(paidEvent));
+  const emails = sentEmails();
+  expect(emails).toHaveLength(2);
+  for (const { body } of emails) {
+    expect(body.html).toContain('bgcolor="#7342d6"');
+    expect(body.html).toMatch(/<td bgcolor="#7342d6"[\s\S]*Julius Gold&#39;s Library/);
+    expect(body.text.startsWith("=====================\nJulius Gold's Library\n")).toBe(true);
+  }
+});
