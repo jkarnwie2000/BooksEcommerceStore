@@ -28,11 +28,12 @@ function mockRes() {
   res.setHeader = vi.fn();
   return res;
 }
-const auth = { authorization: "Bearer pw" };
+const auth = { authorization: "Basic " + Buffer.from("admin@shop.test:pw").toString("base64") };
 
 beforeEach(() => {
   stored = null;
   process.env.ADMIN_PASSWORD = "pw";
+  process.env.ADMIN_EMAIL = "admin@shop.test";
   process.env.BLOB_READ_WRITE_TOKEN = "token";
   process.env.STRIPE_SECRET_KEY = "sk_test";
 });

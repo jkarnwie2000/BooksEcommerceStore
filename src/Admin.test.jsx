@@ -24,13 +24,14 @@ test("shows stats and orders after signing in", async () => {
   });
 
   render(<Admin books={books} />);
+  fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: "admin@shop.test" } });
   fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "secret" } });
   fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
   expect(await screen.findByText("Admin dashboard")).toBeInTheDocument();
   expect(screen.getByText("Ada")).toBeInTheDocument();
   expect(screen.getAllByText("$38.00").length).toBeGreaterThan(0);
-  expect(globalThis.fetch.mock.calls[0][1].headers.Authorization).toBe("Bearer secret");
+  expect(globalThis.fetch.mock.calls[0][1].headers.Authorization).toBe("Basic " + btoa("admin@shop.test:secret"));
 });
 
 test("shows an error for a wrong password", async () => {
@@ -41,8 +42,9 @@ test("shows an error for a wrong password", async () => {
   });
 
   render(<Admin books={books} />);
+  fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: "admin@shop.test" } });
   fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "wrong" } });
   fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("Incorrect password.");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Incorrect email or password.");
 });

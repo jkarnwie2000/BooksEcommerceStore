@@ -19,6 +19,16 @@ function saveToken(token) {
   }
 }
 
+// "Authorization" header value for an email + password sign-in.
+function basicAuth(email, password) {
+  const bytes = new TextEncoder().encode(`${email.trim()}:${password}`);
+  let binary = "";
+  bytes.forEach((b) => {
+    binary += String.fromCharCode(b);
+  });
+  return `Basic ${btoa(binary)}`;
+}
+
 const money = (n) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
@@ -33,6 +43,7 @@ function formatAddress(address = {}) {
 
 const Admin = ({ books }) => {
   const [token, setToken] = useState(readToken);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +65,7 @@ const Admin = ({ books }) => {
     try {
       const response = await fetch(
         `/api/admin/orders?id=${encodeURIComponent(order.id)}`,
-        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
+        { method: "DELETE", headers: { Authorization: token } }
       );
       const body = await response.json().catch(() => ({}));
       if (response.status === 401) {
@@ -76,13 +87,13 @@ const Admin = ({ books }) => {
     setError("");
     try {
       const response = await fetch("/api/admin/orders", {
-        headers: { Authorization: `Bearer ${authToken}` },
+        headers: { Authorization: authToken },
       });
       const body = await response.json().catch(() => ({}));
       if (response.status === 401) {
         saveToken("");
         setToken("");
-        throw new Error("Incorrect password.");
+        throw new Error("Incorrect email or password.");
       }
       if (!response.ok) throw new Error(body.error || "Could not load orders.");
       saveToken(authToken);
@@ -103,13 +114,14 @@ const Admin = ({ books }) => {
 
   function handleLogin(event) {
     event.preventDefault();
-    if (password) loadOrders(password);
+    if (email && password) loadOrders(basicAuth(email, password));
   }
 
   function handleLogout() {
     saveToken("");
     setToken("");
     setData(null);
+    setEmail("");
     setPassword("");
   }
 
@@ -121,6 +133,18 @@ const Admin = ({ books }) => {
             <div className="row">
               <form className="admin__login" onSubmit={handleLogin}>
                 <h2 className="cart__title">Admin login</h2>
+                <label htmlFor="admin-email" className="admin__label">
+                  Email address
+                </label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  className="admin__input"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="username"
+                  required
+                />
                 <label htmlFor="admin-password" className="admin__label">
                   Password
                 </label>
@@ -132,7 +156,7 @@ const Admin = ({ books }) => {
                   onChange={(event) => setPassword(event.target.value)}
                   autoComplete="current-password"
                 />
-                <button className="btn" type="submit" disabled={loading || !password}>
+                <button className="btn" type="submit" disabled={loading || !email || !password}>
                   {loading ? "Signing in..." : "Sign in"}
                 </button>
                 {error && (

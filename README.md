@@ -28,7 +28,7 @@ Payments and the admin dashboard use Vercel serverless functions in the `api/` f
 1. Create a [Stripe account](https://dashboard.stripe.com/register) and copy your **test** secret key (`sk_test_...`) from Developers → API keys.
 2. In Vercel → Project → Settings → Environment Variables, add:
    * `STRIPE_SECRET_KEY` — your Stripe secret key
-   * `ADMIN_PASSWORD` — the password for the `/admin` dashboard
+   * `ADMIN_EMAIL` and `ADMIN_PASSWORD` — the email address and password for signing in to the `/admin` dashboard
 3. Redeploy. Pay with the test card `4242 4242 4242 4242`, any future expiry date, and any CVC.
 
 ### Order confirmation emails

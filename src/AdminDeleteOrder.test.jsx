@@ -25,6 +25,7 @@ afterEach(() => {
 
 async function signIn() {
   render(<Admin books={books} />);
+  fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: "admin@shop.test" } });
   fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "secret" } });
   fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
   await screen.findByText("Ada");
@@ -45,7 +46,7 @@ test("deleting a transaction confirms, calls the API, and refreshes the list", a
   const [url, options] = fetchMock.mock.calls[1];
   expect(url).toBe("/api/admin/orders?id=cs_test_1");
   expect(options.method).toBe("DELETE");
-  expect(options.headers.Authorization).toBe("Bearer secret");
+  expect(options.headers.Authorization).toBe("Basic " + btoa("admin@shop.test:secret"));
 });
 
 test("cancelling the confirmation keeps the transaction", async () => {
