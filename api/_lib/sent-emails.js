@@ -1,4 +1,4 @@
-import { head, put } from "@vercel/blob";
+import { BlobNotFoundError, head, put } from "@vercel/blob";
 
 // Remembers which order emails were sent (as tiny private Vercel Blob files),
 // so Stripe webhook retries never email anyone twice.
@@ -12,7 +12,7 @@ export async function alreadySent(key) {
     await head(pathFor(key));
     return true;
   } catch (err) {
-    if (err?.name === "BlobNotFoundError") return false;
+    if (err instanceof BlobNotFoundError) return false;
     throw err;
   }
 }

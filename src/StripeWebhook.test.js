@@ -18,15 +18,17 @@ const createTransport = vi.fn(() => ({ sendMail }));
 vi.mock("nodemailer", () => ({ default: { createTransport: (...a) => createTransport(...a) } }));
 
 const sentMarkers = new Set();
-vi.mock("@vercel/blob", () => ({
+vi.mock("@vercel/blob", async (importOriginal) => {
+  const { BlobNotFoundError } = await importOriginal();
+  return {
+  BlobNotFoundError,
   head: vi.fn(async (path) => {
     if (sentMarkers.has(path)) return {};
-    const err = new Error("not found");
-    err.name = "BlobNotFoundError";
-    throw err;
+    throw new BlobNotFoundError(); // what the real SDK throws (its name is "Error")
   }),
   put: vi.fn(async (path) => { sentMarkers.add(path); return {}; }),
-}));
+  };
+});
 
 const { POST } = await import("../api/stripe-webhook.js");
 

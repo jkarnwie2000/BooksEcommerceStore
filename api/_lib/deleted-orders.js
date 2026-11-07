@@ -1,4 +1,4 @@
-import { get, put } from "@vercel/blob";
+import { BlobNotFoundError, get, put } from "@vercel/blob";
 
 // Stripe never deletes completed payments, so transactions deleted from the
 // admin dashboard are recorded here (a private Vercel Blob file) and left
@@ -17,7 +17,7 @@ export async function readDeletedOrderIds() {
     const data = JSON.parse(await new Response(result.stream).text());
     return Array.isArray(data.deletedIds) ? data.deletedIds.map(String) : [];
   } catch (err) {
-    if (err?.name === "BlobNotFoundError") return [];
+    if (err instanceof BlobNotFoundError) return [];
     throw err;
   }
 }
