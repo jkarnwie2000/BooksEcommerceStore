@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { books } from "../data";
 import Book from "../components/ui/Book";
 
@@ -6,11 +6,6 @@ import Book from "../components/ui/Book";
 
 const Books = ({ books: initialBooks }) => {
     const [books, setBooks] = useState(initialBooks)
-
-    // Pick up catalog changes (e.g. books deleted by the admin).
-    useEffect(() => {
-        setBooks(initialBooks)
-    }, [initialBooks])
     function filterBooks(filter) {
         console.log(filter)
         if (filter === "LOW_TO_HIGH") {

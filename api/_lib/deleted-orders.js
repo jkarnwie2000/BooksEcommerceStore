@@ -1,30 +1,29 @@
 import { get, put } from "@vercel/blob";
-import { books } from "../../src/data.js";
 
-// The catalog itself lives in src/data.js. Books deleted from the admin
-// dashboard are recorded as a list of ids in a private Vercel Blob file,
-// so a deleted book can be restored later.
-const PATHNAME = "catalog/deleted-books.json";
+// Stripe never deletes completed payments, so transactions deleted from the
+// admin dashboard are recorded here (a private Vercel Blob file) and left
+// out of the dashboard's order list and totals.
+const PATHNAME = "admin/deleted-orders.json";
 
 export function storageConfigured() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
-export async function readDeletedIds() {
+export async function readDeletedOrderIds() {
   if (!storageConfigured()) return [];
   try {
     const result = await get(PATHNAME, { access: "private", useCache: false });
     if (!result || result.statusCode !== 200) return [];
     const data = JSON.parse(await new Response(result.stream).text());
-    return Array.isArray(data.deletedIds) ? data.deletedIds.map(Number) : [];
+    return Array.isArray(data.deletedIds) ? data.deletedIds.map(String) : [];
   } catch (err) {
     if (err?.name === "BlobNotFoundError") return [];
     throw err;
   }
 }
 
-export async function writeDeletedIds(ids) {
-  const deletedIds = [...new Set(ids.map(Number))].sort((a, b) => a - b);
+export async function writeDeletedOrderIds(ids) {
+  const deletedIds = [...new Set(ids.map(String))];
   await put(PATHNAME, JSON.stringify({ deletedIds }), {
     access: "private",
     allowOverwrite: true,
@@ -32,8 +31,4 @@ export async function writeDeletedIds(ids) {
     contentType: "application/json",
   });
   return deletedIds;
-}
-
-export function findBook(id) {
-  return books.find((book) => book.id === Number(id));
 }

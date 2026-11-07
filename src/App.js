@@ -1,5 +1,5 @@
 import Nav from "./components/Nav";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect  } from "react";
 import Footer from "./components/Footer";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Home from "./pages/Home";
@@ -23,36 +23,7 @@ function loadCart() {
 
 
 function App() {
-    const [cart, setCart] = useState(loadCart);
-    const [deletedIds, setDeletedIds] = useState([]);
-
-    // Books deleted from the admin dashboard are hidden from the shop.
-    useEffect(() => {
-      let cancelled = false;
-      fetch("/api/books")
-        .then(response => (response.ok ? response.json() : null))
-        .then(data => {
-          if (!cancelled && Array.isArray(data?.deletedIds)) setDeletedIds(data.deletedIds)
-        })
-        .catch(() => {
-          // API unavailable (e.g. local `npm start`): show the full catalog.
-        })
-      return () => { cancelled = true }
-    }, [])
-
-    // Drop deleted books from the cart too.
-    useEffect(() => {
-      if (deletedIds.length === 0) return
-      setCart(current => {
-        const kept = current.filter(item => !deletedIds.includes(item.id))
-        return kept.length === current.length ? current : kept
-      })
-    }, [deletedIds])
-
-    const shopBooks = useMemo(
-      () => books.filter(book => !deletedIds.includes(book.id)),
-      [deletedIds]
-    )
+    const [cart, setCart] = useState(loadCart);  
     function addToCart(book) {
       setCart([...cart, { ...book, quantity: 1 }])
     }
@@ -99,12 +70,12 @@ function App() {
       <div className="App">    
       <Nav numberOfItems={numberOfItems()} />
       <Routes>
-      <Route path="/" exact element={<Home books={shopBooks}/>} />
-      <Route path="/books" exact element={<Books books={shopBooks} />} />
-      <Route path="/books/:id" element={<BookInfo books={shopBooks} addToCart={addToCart} cart={cart}/>} />
-      <Route path="/cart" element={<Cart books={shopBooks} cart={cart} changeQuantity={changeQuantity} removeItem={removeItem} />} />
+      <Route path="/" exact element={<Home books={books}/>} />
+      <Route path="/books" exact element={<Books books={books} />} />
+      <Route path="/books/:id" element={<BookInfo books={books} addToCart={addToCart} cart={cart}/>} />
+      <Route path="/cart" element={<Cart books={books} cart={cart} changeQuantity={changeQuantity} removeItem={removeItem} />} />
       <Route path="/checkout/success" element={<CheckoutSuccess clearCart={clearCart} />} />
-      <Route path="/admin" element={<Admin books={books} deletedIds={deletedIds} onDeletedIdsChange={setDeletedIds} />} />
+      <Route path="/admin" element={<Admin books={books} />} />
       </Routes>
       <Footer />
       </div>

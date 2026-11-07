@@ -22,45 +22,43 @@ function saveToken(token) {
 const money = (n) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-const Admin = ({ books, deletedIds = [], onDeletedIdsChange = () => {} }) => {
+const Admin = ({ books }) => {
   const [token, setToken] = useState(readToken);
   const [password, setPassword] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [busyBookId, setBusyBookId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
-  async function updateBook(book, action) {
+  async function deleteOrder(order) {
+    const who = order.name || order.email || "an unknown customer";
     if (
-      action === "delete" &&
-      !window.confirm(`Delete "${book.title}"? It will be hidden from the store. You can restore it later.`)
+      !window.confirm(
+        `Delete the ${money(order.total)} transaction from ${who}? ` +
+          "It will be removed from this dashboard and its totals. Stripe keeps its own record."
+      )
     ) {
       return;
     }
-    setBusyBookId(book.id);
+    setDeletingId(order.id);
     setError("");
     try {
-      const response = await fetch("/api/admin/books", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: book.id, action }),
-      });
+      const response = await fetch(
+        `/api/admin/orders?id=${encodeURIComponent(order.id)}`,
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
+      );
       const body = await response.json().catch(() => ({}));
       if (response.status === 401) {
         handleLogout();
         throw new Error("Your session expired. Please sign in again.");
       }
-      if (!response.ok || !Array.isArray(body.deletedIds)) {
-        throw new Error(body.error || `Could not ${action} the book.`);
-      }
-      onDeletedIdsChange(body.deletedIds);
+      if (!response.ok) throw new Error(body.error || "Could not delete the transaction.");
+      // Reload so the order list and totals reflect the deletion.
+      await loadOrders(token);
     } catch (err) {
       setError(err.message);
     } finally {
-      setBusyBookId(null);
+      setDeletingId(null);
     }
   }
 
@@ -198,6 +196,7 @@ const Admin = ({ books, deletedIds = [], onDeletedIdsChange = () => {} }) => {
                       <th>Customer</th>
                       <th>Items</th>
                       <th className="admin__num">Total</th>
+                      <th className="admin__num">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -211,6 +210,16 @@ const Admin = ({ books, deletedIds = [], onDeletedIdsChange = () => {} }) => {
                             .join(", ")}
                         </td>
                         <td className="admin__num">{money(order.total)}</td>
+                        <td className="admin__num">
+                          <button
+                            className="admin__action admin__action--delete"
+                            onClick={() => deleteOrder(order)}
+                            disabled={deletingId === order.id}
+                            aria-label={`Delete transaction from ${order.name || order.email || "unknown customer"} on ${new Date(order.created).toLocaleDateString()}`}
+                          >
+                            {deletingId === order.id ? "Deleting..." : "Delete"}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -228,16 +237,11 @@ const Admin = ({ books, deletedIds = [], onDeletedIdsChange = () => {} }) => {
                     <th className="admin__num">Sale price</th>
                     <th className="admin__num">Rating</th>
                     <th className="admin__num">Sold</th>
-                    <th>Status</th>
-                    <th className="admin__num">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {books.map((book) => {
-                    const deleted = deletedIds.includes(book.id);
-                    const busy = busyBookId === book.id;
-                    return (
-                    <tr key={book.id} className={deleted ? "admin__row--deleted" : undefined}>
+                  {books.map((book) => (
+                    <tr key={book.id}>
                       <td>{book.title}</td>
                       <td className="admin__num">{money(book.originalPrice)}</td>
                       <td className="admin__num">
@@ -245,31 +249,8 @@ const Admin = ({ books, deletedIds = [], onDeletedIdsChange = () => {} }) => {
                       </td>
                       <td className="admin__num">{book.rating}</td>
                       <td className="admin__num">{soldByTitle[book.title] || 0}</td>
-                      <td>{deleted ? "Deleted" : "In store"}</td>
-                      <td className="admin__num">
-                        {deleted ? (
-                          <button
-                            className="admin__action admin__action--restore"
-                            onClick={() => updateBook(book, "restore")}
-                            disabled={busy}
-                            aria-label={`Restore ${book.title}`}
-                          >
-                            {busy ? "Restoring..." : "Restore"}
-                          </button>
-                        ) : (
-                          <button
-                            className="admin__action admin__action--delete"
-                            onClick={() => updateBook(book, "delete")}
-                            disabled={busy}
-                            aria-label={`Delete ${book.title}`}
-                          >
-                            {busy ? "Deleting..." : "Delete"}
-                          </button>
-                        )}
-                      </td>
                     </tr>
-                    );
-                  })}
+                  ))}
                 </tbody>
               </table>
             </div>

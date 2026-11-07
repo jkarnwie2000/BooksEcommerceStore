@@ -1063,16 +1063,3 @@ a.btn {
   color: #cf0000;
   border: 1px solid #cf0000;
 }
-
-.admin__action--restore {
-  color: #7342d6;
-  border: 1px solid #7342d6;
-}
-
-.admin__row--deleted td {
-  color: #9a9a9a;
-}
-
-.admin__row--deleted td:first-child {
-  text-decoration: line-through;
-}
