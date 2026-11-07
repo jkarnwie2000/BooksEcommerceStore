@@ -16,8 +16,8 @@ export const socialLinks = [
     { name: "Instagram", url: "https://www.instagram.com/", icon: faInstagram },
 ];
 
-// Takes the visitor to the top of the home page (also works when they're
-// already on the home page, where a plain link to "/" wouldn't scroll).
+// Takes the visitor to the top of the page the link opens (also works when
+// they're already on that page, where a plain link wouldn't scroll).
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -33,10 +33,10 @@ const Footer = () => {
                         </figure>
                     </Link>
                     <div className="footer__list">
-                        <Link to="/" className="footer__link">Home</Link>
+                        <Link to="/" className="footer__link" onClick={scrollToTop}>Home</Link>
                         <Link to="/" className="footer__link" onClick={scrollToTop}>About</Link>
                         <Link to="/books" className="footer__link">Books</Link>
-                        <Link to="/cart" className="footer__link">Cart</Link>
+                        <Link to="/cart" className="footer__link" onClick={scrollToTop}>Cart</Link>
                         <Link to="/admin" className="footer__link">Admin</Link>
                     </div>
                     <ul className="footer__social">
