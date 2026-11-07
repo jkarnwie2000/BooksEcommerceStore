@@ -232,3 +232,25 @@ Total: ${money(order.total)}
 Stripe session: ${order.id}`;
   return { subject, html, text };
 }
+
+export function passwordResetEmail(link) {
+  const subject = `Reset your ${STORE_NAME} admin password`;
+  const html = layout(
+    "Reset your admin password",
+    `<p>Someone (hopefully you) asked to reset the password for the ${escapeHtml(STORE_NAME)} admin dashboard.</p>
+     <p style="margin:28px 0;text-align:center">
+       <a href="${escapeHtml(link)}" style="display:inline-block;background-color:#7342d6;color:#ffffff;text-decoration:none;font-weight:bold;padding:12px 24px;border-radius:4px">Choose a new password</a>
+     </p>
+     <p>This link works once and expires in 30 minutes.</p>
+     <p style="color:#6b6b6b;font-size:13px">If you didn't ask for this, you can ignore this email. Your password won't change.</p>
+     <p style="color:#6b6b6b;font-size:13px;word-break:break-all">Button not working? Paste this link into your browser:<br>${escapeHtml(link)}</p>`,
+    "Use this link to choose a new admin password. It expires in 30 minutes."
+  );
+  const text = `${textBanner()}Someone (hopefully you) asked to reset the password for the ${STORE_NAME} admin dashboard.
+
+Choose a new password here (works once, expires in 30 minutes):
+${link}
+
+If you didn't ask for this, you can ignore this email. Your password won't change.`;
+  return { subject, html, text };
+}

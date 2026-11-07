@@ -1,12 +1,19 @@
 import { test, expect, vi, beforeEach } from "vitest";
 
 let stored = null;
-vi.mock("@vercel/blob", () => ({
-  get: vi.fn(async () =>
-    stored === null ? null : { statusCode: 200, stream: new Response(stored).body }
-  ),
-  put: vi.fn(async (_path, body) => { stored = body; return {}; }),
-}));
+vi.mock("@vercel/blob", async (importOriginal) => {
+  const { BlobNotFoundError } = await importOriginal();
+  return {
+    BlobNotFoundError,
+    del: vi.fn(),
+    get: vi.fn(async (path) =>
+      path !== "admin/deleted-orders.json" || stored === null
+        ? null
+        : { statusCode: 200, stream: new Response(stored).body }
+    ),
+    put: vi.fn(async (_path, body) => { stored = body; return {}; }),
+  };
+});
 
 const session = (id, total) => ({
   id, created: 1790000000, payment_status: "paid", amount_total: total * 100, currency: "usd",

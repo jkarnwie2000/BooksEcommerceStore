@@ -9,6 +9,7 @@ import BookInfo from "./pages/BookInfo"
 import Cart from "./pages/Cart";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Admin from "./pages/Admin";
+import AdminResetPassword from "./pages/AdminResetPassword";
 
 const CART_KEY = "cart";
 
@@ -76,6 +77,7 @@ function App() {
       <Route path="/cart" element={<Cart books={books} cart={cart} changeQuantity={changeQuantity} removeItem={removeItem} />} />
       <Route path="/checkout/success" element={<CheckoutSuccess clearCart={clearCart} />} />
       <Route path="/admin" element={<Admin books={books} />} />
+      <Route path="/admin/reset-password" element={<AdminResetPassword />} />
       </Routes>
       <Footer />
       </div>

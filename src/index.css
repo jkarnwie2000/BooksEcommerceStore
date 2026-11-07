@@ -1082,3 +1082,19 @@ a.btn {
   line-height: 1.4;
   min-width: 160px;
 }
+
+.admin__text-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #7342d6;
+  font-size: 15px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.admin__success {
+  color: #2e7d32;
+  font-weight: 600;
+}

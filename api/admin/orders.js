@@ -12,7 +12,7 @@ import {
 //   DELETE /api/admin/orders?id=cs_.. -> delete a transaction from the dashboard
 //                                        (Stripe itself keeps its record)
 export default async function handler(req, res) {
-  if (!isAuthorized(req)) {
+  if (!(await isAuthorized(req))) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 

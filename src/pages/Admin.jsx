@@ -49,6 +49,9 @@ const Admin = ({ books }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotSending, setForgotSending] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
 
   async function deleteOrder(order) {
     const who = order.name || order.email || "an unknown customer";
@@ -125,6 +128,72 @@ const Admin = ({ books }) => {
     setPassword("");
   }
 
+  async function handleForgot(event) {
+    event.preventDefault();
+    setForgotSending(true);
+    setForgotMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(body.error || "Could not send the reset email.");
+      setForgotMessage(body.message);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setForgotSending(false);
+    }
+  }
+
+  function showForgot(show) {
+    setForgotMode(show);
+    setForgotMessage("");
+    setError("");
+  }
+
+  if (!data && forgotMode) {
+    return (
+      <div id="books__body">
+        <main id="books__main">
+          <div className="books__container">
+            <div className="row">
+              <form className="admin__login" onSubmit={handleForgot}>
+                <h2 className="cart__title">Reset your password</h2>
+                <p>Enter your admin email address and we'll email you a link to choose a new password.</p>
+                <label htmlFor="admin-forgot-email" className="admin__label">
+                  Email address
+                </label>
+                <input
+                  id="admin-forgot-email"
+                  type="email"
+                  className="admin__input"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="username"
+                  required
+                />
+                <button className="btn" type="submit" disabled={forgotSending || !email}>
+                  {forgotSending ? "Sending..." : "Send reset link"}
+                </button>
+                {forgotMessage && (
+                  <p className="admin__success" role="status">{forgotMessage}</p>
+                )}
+                {error && <p className="checkout__error" role="alert">{error}</p>}
+                <button type="button" className="admin__text-btn" onClick={() => showForgot(false)}>
+                  Back to sign in
+                </button>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (!data) {
     return (
       <div id="books__body">
@@ -162,6 +231,9 @@ const Admin = ({ books }) => {
                 {error && (
                   <p className="checkout__error" role="alert">{error}</p>
                 )}
+                <button type="button" className="admin__text-btn" onClick={() => showForgot(true)}>
+                  Forgot your password?
+                </button>
               </form>
             </div>
           </div>
