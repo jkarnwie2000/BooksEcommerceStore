@@ -1063,3 +1063,14 @@ a.btn {
   color: #cf0000;
   border: 1px solid #cf0000;
 }
+
+.admin__muted {
+  font-size: 13px;
+  color: #6b6b6b;
+}
+
+.admin__address {
+  font-size: 14px;
+  line-height: 1.4;
+  min-width: 160px;
+}

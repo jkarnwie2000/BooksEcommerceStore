@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { books } from "../src/data.js";
+import { SHIPPING_COUNTRIES } from "./_lib/orders.js";
 
 // Vercel serverless function: POST /api/create-checkout-session
 // Body: { items: [{ id, quantity }] }
@@ -50,6 +51,8 @@ export default async function handler(req, res) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: lineItems,
+      shipping_address_collection: { allowed_countries: SHIPPING_COUNTRIES },
+      phone_number_collection: { enabled: true },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart`,
     });

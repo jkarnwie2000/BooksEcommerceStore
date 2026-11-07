@@ -22,6 +22,15 @@ function saveToken(token) {
 const money = (n) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
+function formatAddress(address = {}) {
+  const cityLine = [address.city, address.state, address.postal_code]
+    .filter(Boolean)
+    .join(", ");
+  return [address.line1, address.line2, cityLine, address.country]
+    .filter(Boolean)
+    .map((line, i) => <div key={i}>{line}</div>);
+}
+
 const Admin = ({ books }) => {
   const [token, setToken] = useState(readToken);
   const [password, setPassword] = useState("");
@@ -194,6 +203,7 @@ const Admin = ({ books }) => {
                     <tr>
                       <th>Date</th>
                       <th>Customer</th>
+                      <th>Ship to</th>
                       <th>Items</th>
                       <th className="admin__num">Total</th>
                       <th className="admin__num">Actions</th>
@@ -203,7 +213,16 @@ const Admin = ({ books }) => {
                     {orders.map((order) => (
                       <tr key={order.id}>
                         <td>{new Date(order.created).toLocaleString()}</td>
-                        <td>{order.name || order.email || "—"}</td>
+                        <td>
+                          {order.name || order.email || "—"}
+                          {order.name && order.email && (
+                            <div className="admin__muted">{order.email}</div>
+                          )}
+                          {order.phone && <div className="admin__muted">{order.phone}</div>}
+                        </td>
+                        <td className="admin__address">
+                          {order.shipping ? formatAddress(order.shipping.address) : "—"}
+                        </td>
                         <td>
                           {order.items
                             .map((item) => `${item.title} × ${item.quantity}`)

@@ -16,7 +16,9 @@
 *  ⚡ Dynamic Book Sorting: Enables shoppers to sort books by price and customer ratings for a more personalized shopping experience.
 *  🎯 Automated Price Calculation: Automatically calculates the subtotal, sales tax, and total purchase cost for accurate, real-time checkout estimates.
 *  💳 Stripe Checkout: Secure card payments through Stripe, with prices verified on the server.
-*  📊 Admin Dashboard: A password-protected `/admin` page showing revenue, orders, books sold, and the catalog, pulled live from Stripe.
+*  📦 Shipping Details: Customers enter their delivery address and phone number at checkout.
+*  📧 Order Emails: Customers get an order confirmation email, and the business gets a new-order notification.
+*  📊 Admin Dashboard: A password-protected `/admin` page showing revenue, orders (with shipping addresses), books sold, and the catalog, pulled live from Stripe. Transactions can be deleted from the dashboard.
 *  🔗 Social Links: Social media icons in the site footer.
 
 ## 💳 Stripe Payments & Admin Dashboard Setup
@@ -28,6 +30,16 @@ Payments and the admin dashboard use Vercel serverless functions in the `api/` f
    * `STRIPE_SECRET_KEY` — your Stripe secret key
    * `ADMIN_PASSWORD` — the password for the `/admin` dashboard
 3. Redeploy. Pay with the test card `4242 4242 4242 4242`, any future expiry date, and any CVC.
+
+### Order confirmation emails
+
+Emails are sent by a Stripe webhook (`/api/stripe-webhook`) through [Resend](https://resend.com).
+
+1. In Resend, verify your domain and create an API key.
+2. In Stripe → Developers → Webhooks, add an endpoint `https://YOUR-SITE/api/stripe-webhook` for the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`, then copy its signing secret (`whsec_...`).
+3. In Vercel, add `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `Julius Gold's Library <orders@yourdomain.com>`), `BUSINESS_EMAIL`, and `STRIPE_WEBHOOK_SECRET`, then redeploy.
+
+Shipping countries are set in `SHIPPING_COUNTRIES` in `api/_lib/orders.js`.
 
 **Running locally:** `npm start` serves only the React app, so the `/api` routes won't be available. To test payments locally, install the [Vercel CLI](https://vercel.com/docs/cli), create a `.env` file from `.env.example`, and run `vercel dev`.
 

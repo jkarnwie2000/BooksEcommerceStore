@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { isAuthorized } from "../_lib/auth.js";
+import { toOrder } from "../_lib/orders.js";
 import {
   readDeletedOrderIds,
   storageConfigured,
@@ -40,19 +41,7 @@ async function listOrders(req, res) {
 
     const orders = sessions.data
       .filter((s) => s.payment_status === "paid" && !deletedIds.includes(s.id))
-      .map((s) => ({
-        id: s.id,
-        created: s.created * 1000,
-        email: s.customer_details?.email || null,
-        name: s.customer_details?.name || null,
-        total: (s.amount_total || 0) / 100,
-        currency: s.currency,
-        items: (s.line_items?.data || []).map((li) => ({
-          title: li.description,
-          quantity: li.quantity,
-          amount: (li.amount_total || 0) / 100,
-        })),
-      }));
+      .map(toOrder);
 
     const revenue = orders.reduce((sum, o) => sum + o.total, 0);
     const booksSold = orders.reduce(

@@ -40,6 +40,8 @@ test("uses server-side prices and ignores unknown books or bad quantities", asyn
   expect(args.line_items).toHaveLength(1);
   expect(args.line_items[0].quantity).toBe(2);
   expect(args.line_items[0].price_data.unit_amount).toBe(1495);
+  expect(args.shipping_address_collection.allowed_countries).toContain("LR");
+  expect(args.phone_number_collection).toEqual({ enabled: true });
   expect(args.success_url).toBe("https://shop.test/checkout/success?session_id={CHECKOUT_SESSION_ID}");
 });
 
