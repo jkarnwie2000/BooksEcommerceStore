@@ -121,14 +121,16 @@ function addressText(order) {
 // Email-safe layout: nested tables with inline styles and bgcolor attributes
 // render the same in Gmail, Outlook, Apple Mail, Yahoo and mobile apps.
 // Every email gets the same purple banner with the store name.
-function layout(title, body, preheader = "") {
+function layout(title, body, preheader = "", siteUrl = "") {
   const store = escapeHtml(STORE_NAME);
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
+<style>:root{color-scheme:light only;supported-color-schemes:light only}</style>
 <title>${escapeHtml(title)}</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f5f5f5">
@@ -138,9 +140,8 @@ function layout(title, body, preheader = "") {
     <td align="center" style="padding:24px 12px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="max-width:560px;background-color:#ffffff;border-radius:8px;font-family:Arial,Helvetica,sans-serif;color:#242424">
         <tr>
-          <td bgcolor="#7342d6" align="center" style="background-color:#7342d6;padding:28px 32px;border-radius:8px 8px 0 0">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:32px;font-weight:bold;color:#ffffff">&#128218; ${store}</div>
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#e6dcfa;padding-top:4px">Your online library</div>
+          <td bgcolor="#7342d6" align="center" style="background-color:#7342d6;background-image:linear-gradient(#7342d6,#7342d6);border-radius:8px 8px 0 0;padding:0">
+            ${bannerHtml(siteUrl)}
           </td>
         </tr>
         <tr>
@@ -162,6 +163,24 @@ function layout(title, body, preheader = "") {
 </html>`;
 }
 
+// The banner is an image (email apps never recolour images in dark mode),
+// with the purple background and the text as its fallback when images are
+// blocked. Without a site URL, the text banner is used on its own.
+const BANNER_ALT = "📚 Julius Gold's Library - Your online library";
+
+function bannerHtml(siteUrl) {
+  const store = escapeHtml(STORE_NAME);
+  const textBannerHtml = `
+            <div style="padding:28px 32px">
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;line-height:32px;font-weight:bold;color:#ffffff">&#128218; ${store}</div>
+              <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:20px;color:#e6dcfa;padding-top:4px">Your online library</div>
+            </div>`;
+  if (!siteUrl) return textBannerHtml;
+  const src = `${siteUrl.replace(/\/+$/, "")}/email/banner.png`;
+  return `<img src="${escapeHtml(src)}" width="560" height="120" alt="${escapeHtml(BANNER_ALT)}"
+              style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;text-decoration:none;border-radius:8px 8px 0 0;background-color:#7342d6;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:22px;font-weight:bold;line-height:120px;text-align:center">`;
+}
+
 // Plain-text version header, for email apps that show text instead of HTML.
 function textBanner() {
   const line = "=".repeat(STORE_NAME.length);
@@ -172,7 +191,7 @@ ${line}
 `;
 }
 
-export function customerConfirmationEmail(order) {
+export function customerConfirmationEmail(order, { siteUrl = "" } = {}) {
   const greeting = order.name ? `Hi ${order.name},` : "Hi,";
   const subject = `Your ${STORE_NAME} order #${order.number} is confirmed`;
   const html = layout(
@@ -184,7 +203,8 @@ export function customerConfirmationEmail(order) {
      <h3 style="font-size:16px;margin:24px 0 8px">Shipping to</h3>
      ${addressHtml(order)}
      <p style="margin-top:24px">Questions about your order? Just reply to this email.</p>`,
-    `Thank you for your order! Order #${order.number}: ${money(order.total)}`
+    `Thank you for your order! Order #${order.number}: ${money(order.total)}`,
+    siteUrl
   );
   const text = `${textBanner()}${greeting}
 
@@ -202,7 +222,7 @@ ${STORE_NAME}`;
   return { subject, html, text };
 }
 
-export function businessNotificationEmail(order) {
+export function businessNotificationEmail(order, { siteUrl = "" } = {}) {
   const subject = `New order #${order.number}: ${money(order.total)} from ${order.name || order.email || "a customer"}`;
   const contact = [order.name, order.email, order.phone].filter(Boolean);
   const html = layout(
@@ -215,7 +235,8 @@ export function businessNotificationEmail(order) {
      <h3 style="font-size:16px;margin:24px 0 8px">Items</h3>
      ${itemsHtml(order)}
      <p style="margin-top:24px;color:#6b6b6b;font-size:13px">Stripe session: ${escapeHtml(order.id)}</p>`,
-    `New order #${order.number}: ${money(order.total)}`
+    `New order #${order.number}: ${money(order.total)}`,
+    siteUrl
   );
   const text = `${textBanner()}New order #${order.number} (${new Date(order.created).toUTCString()})
 
