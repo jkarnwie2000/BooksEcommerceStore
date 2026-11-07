@@ -63,15 +63,21 @@ return (
                 harum necessitatibus quaerat nulla beatae neque provident!
             </p>
         </div>
-        {bookExistsOnCart() ? 
-        (
-        <Link to={`/cart`} className="book__link">  
-        <button className="btn">Checkout</button>
-        </Link>
-        ) 
-        : (
-        <button className="btn" onClick={() => addBookToCart(book)}>Add to cart</button>   
-            )}
+        {bookExistsOnCart() ? (
+        <div className="book__added" role="status">
+            <p className="book__added--message">✓ This book is in your cart.</p>
+            <div className="book__added--actions">
+                <Link to="/books" className="btn btn__secondary">
+                    Continue shopping
+                </Link>
+                <Link to="/cart" className="btn">
+                    View cart &amp; checkout
+                </Link>
+            </div>
+        </div>
+        ) : (
+        <button className="btn" onClick={() => addBookToCart(book)}>Add to cart</button>
+        )}
         </div>
         </div>
         </div>

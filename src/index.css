@@ -1008,3 +1008,40 @@ ADMIN DASHBOARD
   text-align: right !important;
   white-space: nowrap;
 }
+
+/*
+**
+
+ADDED TO CART
+
+**
+*/
+
+a.btn {
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn__secondary {
+  background-color: transparent;
+  color: #7342d6;
+  box-shadow: inset 0 0 0 2px #7342d6;
+}
+
+.book__added {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.book__added--message {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.book__added--actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
