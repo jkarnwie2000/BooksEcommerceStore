@@ -1,11 +1,24 @@
 import Stripe from "stripe";
 import { toOrder } from "./_lib/orders.js";
 import {
+  businessEmail,
   businessNotificationEmail,
   customerConfirmationEmail,
   emailConfigured,
   sendEmail,
 } from "./_lib/email.js";
+import { alreadySent, markSent } from "./_lib/sent-emails.js";
+
+// Send once per key: skips emails already sent for this order.
+async function sendOnce(key, message) {
+  if (await alreadySent(key)) return;
+  await sendEmail({ ...message, idempotencyKey: key });
+  try {
+    await markSent(key);
+  } catch (err) {
+    console.error("Could not record sent email:", key, err);
+  }
+}
 
 // Stripe webhook: POST /api/stripe-webhook
 // On a paid checkout, emails the customer a confirmation and notifies the
@@ -41,7 +54,7 @@ export async function POST(request) {
   }
 
   if (!emailConfigured()) {
-    console.error("Order emails skipped: RESEND_API_KEY, EMAIL_FROM or BUSINESS_EMAIL missing.");
+    console.error("Order emails skipped: email settings (SMTP_USER/SMTP_PASS or RESEND_API_KEY/EMAIL_FROM) missing.");
     return Response.json({ received: true, emailed: false });
   }
 
@@ -54,19 +67,17 @@ export async function POST(request) {
 
     if (order.email) {
       sends.push(
-        sendEmail({
+        sendOnce(`order-customer/${order.id}`, {
           to: order.email,
-          replyTo: process.env.BUSINESS_EMAIL,
-          idempotencyKey: `order-customer/${order.id}`,
+          replyTo: businessEmail(),
           ...customerConfirmationEmail(order),
         })
       );
     }
     sends.push(
-      sendEmail({
-        to: process.env.BUSINESS_EMAIL,
+      sendOnce(`order-business/${order.id}`, {
+        to: businessEmail(),
         replyTo: order.email || undefined,
-        idempotencyKey: `order-business/${order.id}`,
         ...businessNotificationEmail(order),
       })
     );
@@ -75,7 +86,7 @@ export async function POST(request) {
     const failed = results.filter((r) => r.status === "rejected");
     if (failed.length) {
       failed.forEach((r) => console.error("Order email failed:", r.reason));
-      // A non-2xx makes Stripe retry; idempotency keys prevent duplicate sends.
+      // A non-2xx makes Stripe retry; emails already sent are skipped.
       return Response.json({ error: "Some emails failed." }, { status: 500 });
     }
     return Response.json({ received: true, emailed: true });

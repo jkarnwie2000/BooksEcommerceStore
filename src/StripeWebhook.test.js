@@ -13,6 +13,21 @@ vi.mock("stripe", async (importOriginal) => {
   return { default: MockStripe };
 });
 
+const sendMail = vi.fn();
+const createTransport = vi.fn(() => ({ sendMail }));
+vi.mock("nodemailer", () => ({ default: { createTransport: (...a) => createTransport(...a) } }));
+
+const sentMarkers = new Set();
+vi.mock("@vercel/blob", () => ({
+  head: vi.fn(async (path) => {
+    if (sentMarkers.has(path)) return {};
+    const err = new Error("not found");
+    err.name = "BlobNotFoundError";
+    throw err;
+  }),
+  put: vi.fn(async (path) => { sentMarkers.add(path); return {}; }),
+}));
+
 const { POST } = await import("../api/stripe-webhook.js");
 
 const SECRET = "whsec_test_secret";
@@ -47,6 +62,10 @@ const paidEvent = { id: "evt_1", type: "checkout.session.completed", data: { obj
 let fetchMock;
 
 beforeEach(() => {
+  for (const k of ["SMTP_USER", "SMTP_PASS", "BLOB_READ_WRITE_TOKEN", "EMAIL_FROM", "BUSINESS_EMAIL"]) delete process.env[k];
+  sentMarkers.clear();
+  sendMail.mockReset().mockResolvedValue({ messageId: "m1" });
+  createTransport.mockClear();
   Object.assign(process.env, {
     STRIPE_SECRET_KEY: "sk_test",
     STRIPE_WEBHOOK_SECRET: SECRET,
@@ -114,4 +133,53 @@ test("returns 500 so Stripe retries when an email fails", async () => {
   fetchMock.mockResolvedValueOnce(new Response("bad", { status: 500 }));
   const res = await POST(signedRequest(paidEvent));
   expect(res.status).toBe(500);
+});
+
+function useGmail() {
+  delete process.env.RESEND_API_KEY;
+  delete process.env.EMAIL_FROM;
+  delete process.env.BUSINESS_EMAIL;
+  process.env.SMTP_USER = "store@gmail.com";
+  process.env.SMTP_PASS = "app-password";
+  process.env.BLOB_READ_WRITE_TOKEN = "token";
+}
+
+test("with Gmail settings, sends both emails through Gmail SMTP", async () => {
+  useGmail();
+  const res = await POST(signedRequest(paidEvent));
+  expect(res.status).toBe(200);
+  expect(fetchMock).not.toHaveBeenCalled();
+
+  expect(createTransport).toHaveBeenCalledWith(expect.objectContaining({
+    host: "smtp.gmail.com", port: 465, secure: true,
+    auth: { user: "store@gmail.com", pass: "app-password" },
+  }));
+  const mails = sendMail.mock.calls.map((c) => c[0]);
+  expect(mails.map((m) => m.to).sort()).toEqual(["ada@example.com", "store@gmail.com"]);
+  mails.forEach((m) => expect(m.from).toBe(`"Julius Gold's Library" <store@gmail.com>`));
+  const customer = mails.find((m) => m.to === "ada@example.com");
+  expect(customer.replyTo).toBe("store@gmail.com");
+  expect(customer.subject).toMatch(/is confirmed/);
+});
+
+test("Stripe retries never send the same email twice", async () => {
+  useGmail();
+  // First attempt: business email fails, customer email succeeds.
+  sendMail.mockImplementation(async (m) => {
+    if (m.to === "store@gmail.com") throw new Error("SMTP down");
+    return {};
+  });
+  let res = await POST(signedRequest(paidEvent));
+  expect(res.status).toBe(500);
+
+  // Retry: only the business email is sent.
+  sendMail.mockReset().mockResolvedValue({});
+  res = await POST(signedRequest(paidEvent));
+  expect(res.status).toBe(200);
+  expect(sendMail.mock.calls.map((c) => c[0].to)).toEqual(["store@gmail.com"]);
+
+  // A further retry sends nothing.
+  sendMail.mockClear();
+  await POST(signedRequest(paidEvent));
+  expect(sendMail).not.toHaveBeenCalled();
 });

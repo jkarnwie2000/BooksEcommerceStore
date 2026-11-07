@@ -33,11 +33,12 @@ Payments and the admin dashboard use Vercel serverless functions in the `api/` f
 
 ### Order confirmation emails
 
-Emails are sent by a Stripe webhook (`/api/stripe-webhook`) through [Resend](https://resend.com).
+Emails are sent by a Stripe webhook (`/api/stripe-webhook`), either from a Gmail account (no domain needed) or through [Resend](https://resend.com).
 
-1. In Resend, verify your domain and create an API key.
-2. In Stripe → Developers → Webhooks, add an endpoint `https://YOUR-SITE/api/stripe-webhook` for the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`, then copy its signing secret (`whsec_...`).
-3. In Vercel, add `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `Julius Gold's Library <orders@yourdomain.com>`), `BUSINESS_EMAIL`, and `STRIPE_WEBHOOK_SECRET`, then redeploy.
+1. **Gmail:** turn on 2-Step Verification for the Gmail account, then create an app password at https://myaccount.google.com/apppasswords. Add `SMTP_USER` (the Gmail address) and `SMTP_PASS` (the 16-character app password, no spaces) in Vercel. Optionally add `BUSINESS_EMAIL` if new-order notifications should go to a different address.
+   *Or* **Resend:** add `RESEND_API_KEY`, `EMAIL_FROM` and `BUSINESS_EMAIL`.
+2. In Stripe → Developers → Webhooks, add an endpoint `https://YOUR-SITE/api/stripe-webhook` for the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`, then add its signing secret as `STRIPE_WEBHOOK_SECRET` in Vercel.
+3. Redeploy.
 
 Shipping countries are set in `SHIPPING_COUNTRIES` in `api/_lib/orders.js`.
 

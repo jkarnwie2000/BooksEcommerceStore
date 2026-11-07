@@ -1,16 +1,51 @@
+import nodemailer from "nodemailer";
 import { addressLines } from "./orders.js";
 
 const STORE_NAME = "Julius Gold's Library";
 
-export function emailConfigured() {
-  return Boolean(
-    process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.BUSINESS_EMAIL
-  );
+// Two ways to send email, picked by which settings exist:
+//  1. Gmail (or any SMTP server): SMTP_USER + SMTP_PASS. No domain needed;
+//     for Gmail, SMTP_PASS is a Google "app password".
+//  2. Resend (https://resend.com): RESEND_API_KEY + EMAIL_FROM on a verified domain.
+function provider() {
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) return "smtp";
+  if (process.env.RESEND_API_KEY && process.env.EMAIL_FROM) return "resend";
+  return null;
 }
 
-// Send one email through Resend (https://resend.com).
-// The idempotency key stops Stripe's webhook retries from sending duplicates.
+export function emailConfigured() {
+  return provider() !== null && Boolean(businessEmail());
+}
+
+export function businessEmail() {
+  return process.env.BUSINESS_EMAIL || process.env.SMTP_USER || "";
+}
+
+function fromAddress() {
+  return process.env.EMAIL_FROM || `"${STORE_NAME}" <${process.env.SMTP_USER}>`;
+}
+
+let transporter;
+function smtpTransporter() {
+  if (!transporter) {
+    const port = Number(process.env.SMTP_PORT || 465);
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port,
+      secure: port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+  }
+  return transporter;
+}
+
 export async function sendEmail({ to, subject, html, text, replyTo, idempotencyKey }) {
+  if (provider() === "smtp") {
+    const mailer = smtpTransporter();
+    return mailer.sendMail({ from: fromAddress(), to, subject, html, text, replyTo });
+  }
+
+  // Resend; the idempotency key stops webhook retries from sending duplicates.
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -19,7 +54,7 @@ export async function sendEmail({ to, subject, html, text, replyTo, idempotencyK
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM,
+      from: fromAddress(),
       to: [to],
       subject,
       html,
