@@ -22,12 +22,47 @@ function saveToken(token) {
 const money = (n) =>
   n.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
-const Admin = ({ books }) => {
+const Admin = ({ books, deletedIds = [], onDeletedIdsChange = () => {} }) => {
   const [token, setToken] = useState(readToken);
   const [password, setPassword] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [busyBookId, setBusyBookId] = useState(null);
+
+  async function updateBook(book, action) {
+    if (
+      action === "delete" &&
+      !window.confirm(`Delete "${book.title}"? It will be hidden from the store. You can restore it later.`)
+    ) {
+      return;
+    }
+    setBusyBookId(book.id);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/books", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: book.id, action }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        handleLogout();
+        throw new Error("Your session expired. Please sign in again.");
+      }
+      if (!response.ok || !Array.isArray(body.deletedIds)) {
+        throw new Error(body.error || `Could not ${action} the book.`);
+      }
+      onDeletedIdsChange(body.deletedIds);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyBookId(null);
+    }
+  }
 
   const loadOrders = useCallback(async (authToken) => {
     setLoading(true);
@@ -193,11 +228,16 @@ const Admin = ({ books }) => {
                     <th className="admin__num">Sale price</th>
                     <th className="admin__num">Rating</th>
                     <th className="admin__num">Sold</th>
+                    <th>Status</th>
+                    <th className="admin__num">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {books.map((book) => (
-                    <tr key={book.id}>
+                  {books.map((book) => {
+                    const deleted = deletedIds.includes(book.id);
+                    const busy = busyBookId === book.id;
+                    return (
+                    <tr key={book.id} className={deleted ? "admin__row--deleted" : undefined}>
                       <td>{book.title}</td>
                       <td className="admin__num">{money(book.originalPrice)}</td>
                       <td className="admin__num">
@@ -205,8 +245,31 @@ const Admin = ({ books }) => {
                       </td>
                       <td className="admin__num">{book.rating}</td>
                       <td className="admin__num">{soldByTitle[book.title] || 0}</td>
+                      <td>{deleted ? "Deleted" : "In store"}</td>
+                      <td className="admin__num">
+                        {deleted ? (
+                          <button
+                            className="admin__action admin__action--restore"
+                            onClick={() => updateBook(book, "restore")}
+                            disabled={busy}
+                            aria-label={`Restore ${book.title}`}
+                          >
+                            {busy ? "Restoring..." : "Restore"}
+                          </button>
+                        ) : (
+                          <button
+                            className="admin__action admin__action--delete"
+                            onClick={() => updateBook(book, "delete")}
+                            disabled={busy}
+                            aria-label={`Delete ${book.title}`}
+                          >
+                            {busy ? "Deleting..." : "Delete"}
+                          </button>
+                        )}
+                      </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

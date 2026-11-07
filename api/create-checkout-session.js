@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { books } from "../src/data.js";
+import { findBook, readDeletedIds } from "./_lib/catalog.js";
 
 // Vercel serverless function: POST /api/create-checkout-session
 // Body: { items: [{ id, quantity }] }
@@ -16,9 +16,18 @@ export default async function handler(req, res) {
 
   const items = Array.isArray(req.body?.items) ? req.body.items : [];
 
+  let deletedIds;
+  try {
+    deletedIds = await readDeletedIds();
+  } catch (err) {
+    console.error("Catalog read error:", err);
+    return res.status(500).json({ error: "Could not start checkout." });
+  }
+
   const lineItems = [];
   for (const item of items) {
-    const book = books.find((b) => b.id === Number(item.id));
+    const book = findBook(item.id);
+    if (book && deletedIds.includes(book.id)) continue;
     const quantity = Math.min(99, Math.floor(Number(item.quantity)));
     if (!book || !(quantity > 0)) continue;
 

@@ -19,6 +19,23 @@ function bookExistsOnCart() {
  return cart.find(book => book.id === +id);
 }
 
+if (!book) {
+    return (
+        <div id="books__body">
+            <main id="books__main">
+                <div className="books__container">
+                    <div className="row">
+                        <div className="cart__empty">
+                            <h2>Sorry, this book is no longer available.</h2>
+                            <Link to="/books" className="btn">Browse books</Link>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    )
+}
+
 return (
 <div id="books__body">
         <main id="books__main">

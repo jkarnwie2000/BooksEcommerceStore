@@ -1,19 +1,9 @@
 import Stripe from "stripe";
-import { timingSafeEqual } from "crypto";
+import { isAuthorized } from "../_lib/auth.js";
 
 // Vercel serverless function: GET /api/admin/orders
 // Requires header "Authorization: Bearer <ADMIN_PASSWORD>".
 // Returns recent completed Stripe Checkout orders plus summary stats.
-
-function isAuthorized(req) {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) return false;
-  const header = req.headers.authorization || "";
-  const given = header.startsWith("Bearer ") ? header.slice(7) : "";
-  const a = Buffer.from(given);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
