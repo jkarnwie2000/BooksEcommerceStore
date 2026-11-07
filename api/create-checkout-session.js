@@ -46,20 +46,35 @@ export default async function handler(req, res) {
     req.headers.origin ||
     `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}`;
 
+  const params = {
+    mode: "payment",
+    line_items: lineItems,
+    shipping_address_collection: { allowed_countries: SHIPPING_COUNTRIES },
+    phone_number_collection: { enabled: true },
+    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/cart`,
+  };
+
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: lineItems,
-      // Card only (Apple Pay / Google Pay still work). Leaving out "link"
-      // turns off Stripe Link, which pre-fills and locks the email and
+    let session;
+    try {
+      // Offer cards only (Apple Pay / Google Pay count as cards). Leaving out
+      // "link" turns off Stripe Link, which pre-fills and locks the email and
       // address fields for shoppers it recognises.
-      payment_method_types: ["card"],
-      shipping_address_collection: { allowed_countries: SHIPPING_COUNTRIES },
-      phone_number_collection: { enabled: true },
-      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/cart`,
-    });
+      session = await stripe.checkout.sessions.create({
+        ...params,
+        allowed_payment_method_types: ["card"],
+      });
+    } catch (err) {
+      // Never let this optional filter block a sale: if Stripe rejects it,
+      // fall back to the payment methods set in the Stripe Dashboard.
+      if (err?.type !== "StripeInvalidRequestError" || err?.param !== "allowed_payment_method_types") {
+        throw err;
+      }
+      console.warn("allowed_payment_method_types rejected, retrying without it:", err.message);
+      session = await stripe.checkout.sessions.create(params);
+    }
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error("Stripe checkout error:", err);

@@ -41,7 +41,8 @@ test("uses server-side prices and ignores unknown books or bad quantities", asyn
   expect(args.line_items[0].quantity).toBe(2);
   expect(args.line_items[0].price_data.unit_amount).toBe(1495);
   expect(args.shipping_address_collection.allowed_countries).toContain("LR");
-  expect(args.payment_method_types).toEqual(["card"]);
+  expect(args.allowed_payment_method_types).toEqual(["card"]);
+  expect(args.payment_method_types).toBeUndefined();
   expect(args.phone_number_collection).toEqual({ enabled: true });
   expect(args.success_url).toBe("https://shop.test/checkout/success?session_id={CHECKOUT_SESSION_ID}");
 });
@@ -51,4 +52,32 @@ test("rejects an empty cart", async () => {
   await handler({ method: "POST", headers: {}, body: { items: [] } }, res);
   expect(res.status).toHaveBeenCalledWith(400);
   expect(create).not.toHaveBeenCalled();
+});
+
+test("falls back to Dashboard payment methods if Stripe rejects the card filter", async () => {
+  const rejected = Object.assign(new Error("unknown parameter"), {
+    type: "StripeInvalidRequestError",
+    param: "allowed_payment_method_types",
+  });
+  create.mockRejectedValueOnce(rejected).mockResolvedValueOnce({ url: "https://checkout.stripe.com/fallback" });
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+
+  const res = mockRes();
+  await handler({ method: "POST", headers: { origin: "https://shop.test" }, body: { items: [{ id: 1, quantity: 1 }] } }, res);
+
+  expect(res.status).toHaveBeenCalledWith(200);
+  expect(res.json).toHaveBeenCalledWith({ url: "https://checkout.stripe.com/fallback" });
+  expect(create.mock.calls[1][0].allowed_payment_method_types).toBeUndefined();
+  expect(create.mock.calls[1][0].shipping_address_collection).toBeDefined();
+});
+
+test("other Stripe errors are not retried", async () => {
+  create.mockRejectedValueOnce(Object.assign(new Error("bad key"), { type: "StripeAuthenticationError" }));
+  vi.spyOn(console, "error").mockImplementation(() => {});
+
+  const res = mockRes();
+  await handler({ method: "POST", headers: {}, body: { items: [{ id: 1, quantity: 1 }] } }, res);
+
+  expect(res.status).toHaveBeenCalledWith(500);
+  expect(create).toHaveBeenCalledTimes(1);
 });
