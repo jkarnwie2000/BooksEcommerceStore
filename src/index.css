@@ -490,6 +490,14 @@ footer {
 
 .footer__link {
   padding: 0 8px;
+  transition: color 300ms ease;
+}
+
+/* Light purple (readable on the dark footer) on hover, keyboard focus, and click */
+.footer__link:hover,
+.footer__link:focus-visible,
+.footer__link:active {
+  color: #a98bea;
 }
 
 /* 
