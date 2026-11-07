@@ -7,10 +7,23 @@ import Books from "./pages/Books";
 import { books } from "./data";
 import BookInfo from "./pages/BookInfo"
 import Cart from "./pages/Cart";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
+import Admin from "./pages/Admin";
+
+const CART_KEY = "cart";
+
+function loadCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CART_KEY));
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
 
 
 function App() {
-    const [cart, setCart] = useState([]);  
+    const [cart, setCart] = useState(loadCart);  
     function addToCart(book) {
       setCart([...cart, { ...book, quantity: 1 }])
     }
@@ -39,8 +52,18 @@ function App() {
       return counter;
     }
 
-    useEffect(() => {           
-    }, [cart]) 
+    function clearCart() {
+      setCart([])
+    }
+
+    // Keep the cart across page loads so it survives the trip to Stripe Checkout.
+    useEffect(() => {
+      try {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart))
+      } catch {
+        // Storage unavailable; the cart just won't persist.
+      }
+    }, [cart])
 
     return (
       <Router>
@@ -51,6 +74,8 @@ function App() {
       <Route path="/books" exact element={<Books books={books} />} />
       <Route path="/books/:id" element={<BookInfo books={books} addToCart={addToCart} cart={cart}/>} />
       <Route path="/cart" element={<Cart books={books} cart={cart} changeQuantity={changeQuantity} removeItem={removeItem} />} />
+      <Route path="/checkout/success" element={<CheckoutSuccess clearCart={clearCart} />} />
+      <Route path="/admin" element={<Admin books={books} />} />
       </Routes>
       <Footer />
       </div>

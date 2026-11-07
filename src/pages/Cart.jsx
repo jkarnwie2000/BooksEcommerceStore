@@ -1,8 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 
 const Cart = ({ cart, changeQuantity, removeItem }) => {
+const [checkingOut, setCheckingOut] = useState(false);
+const [checkoutError, setCheckoutError] = useState("");
+
+async function checkout() {
+    setCheckingOut(true);
+    setCheckoutError("");
+    try {
+        const response = await fetch("/api/create-checkout-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                items: cart.map((item) => ({ id: item.id, quantity: item.quantity })),
+            }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.url) {
+            throw new Error(data.error || "Could not start checkout.");
+        }
+        window.location.assign(data.url);
+    } catch (err) {
+        setCheckoutError(err.message);
+        setCheckingOut(false);
+    }
+}
+
 const total = () => {
 let price = 0;
 cart.forEach((item) => {
@@ -29,7 +54,7 @@ return (
                         {
                             cart.map((book) => {
                               return (
-                                <div className="cart__item">
+                                <div className="cart__item" key={book.id}>
                                 <div className="cart__book">
                                 <img 
                                 src= {book.url}
@@ -88,16 +113,25 @@ return (
                         <span>Total</span>
                         <span>${total().toFixed(2)}</span>
                     </div>
-                    <button className="btn btn__checkout no-cursor" 
-                    onClick={() => alert(`Haven't got around to doing this :(`)}>                                
-                        Proceed to checkout
-                    </button>              
+                    <button className="btn btn__checkout"
+                    onClick={checkout}
+                    disabled={checkingOut || numberOfBooks(cart) === 0}>
+                        {checkingOut ? "Redirecting to Stripe..." : "Proceed to checkout"}
+                    </button>
+                    {checkoutError && (
+                        <p className="checkout__error" role="alert">{checkoutError}</p>
+                    )}
+                    <p className="checkout__secure">Payments are processed securely by Stripe.</p>
                 </div>)}
             </div>
         </div>
     </main>
 </div>
     )
+}
+
+function numberOfBooks(cart) {
+    return cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
 }
 
 export default Cart;

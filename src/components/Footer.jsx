@@ -1,6 +1,21 @@
 import React from "react";
-
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faGithub,
+    faLinkedin,
+    faXTwitter,
+    faInstagram,
+} from "@fortawesome/free-brands-svg-icons";
+
+// Update these URLs to point at your own profiles.
+export const socialLinks = [
+    { name: "GitHub", url: "https://github.com/jkarnwie2000", icon: faGithub },
+    { name: "LinkedIn", url: "https://www.linkedin.com/", icon: faLinkedin },
+    { name: "X", url: "https://x.com/", icon: faXTwitter },
+    { name: "Instagram", url: "https://www.instagram.com/", icon: faInstagram },
+];
+
 const Footer = () => {
     return (
         <footer>
@@ -16,7 +31,23 @@ const Footer = () => {
                         <span className="footer__link no-cursor">About</span>
                         <Link to="/books" className="footer__link">Books</Link>
                         <Link to="/cart" className="footer__link">Cart</Link>
+                        <Link to="/admin" className="footer__link">Admin</Link>
                     </div>
+                    <ul className="footer__social">
+                        {socialLinks.map((social) => (
+                            <li key={social.name}>
+                                <a
+                                    href={social.url}
+                                    className="footer__social--link"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    aria-label={social.name}
+                                >
+                                    <FontAwesomeIcon icon={social.icon} />
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
                     <div className="footer__copyright">
                         Copyright &copy; 2026 Julius Gold's Library
                     </div>

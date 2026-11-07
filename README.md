@@ -15,6 +15,23 @@
 *  📚 Interactive Shopping Cart: Allows customers to select books, add up to 99 items to their cart, and manage their purchases with ease.
 *  ⚡ Dynamic Book Sorting: Enables shoppers to sort books by price and customer ratings for a more personalized shopping experience.
 *  🎯 Automated Price Calculation: Automatically calculates the subtotal, sales tax, and total purchase cost for accurate, real-time checkout estimates.
+*  💳 Stripe Checkout: Secure card payments through Stripe, with prices verified on the server.
+*  📊 Admin Dashboard: A password-protected `/admin` page showing revenue, orders, books sold, and the catalog, pulled live from Stripe.
+*  🔗 Social Links: Social media icons in the site footer.
+
+## 💳 Stripe Payments & Admin Dashboard Setup
+
+Payments and the admin dashboard use Vercel serverless functions in the `api/` folder, so your Stripe secret key never reaches the browser.
+
+1. Create a [Stripe account](https://dashboard.stripe.com/register) and copy your **test** secret key (`sk_test_...`) from Developers → API keys.
+2. In Vercel → Project → Settings → Environment Variables, add:
+   * `STRIPE_SECRET_KEY` — your Stripe secret key
+   * `ADMIN_PASSWORD` — the password for the `/admin` dashboard
+3. Redeploy. Pay with the test card `4242 4242 4242 4242`, any future expiry date, and any CVC.
+
+**Running locally:** `npm start` serves only the React app, so the `/api` routes won't be available. To test payments locally, install the [Vercel CLI](https://vercel.com/docs/cli), create a `.env` file from `.env.example`, and run `vercel dev`.
+
+**Social links:** update the URLs in the `socialLinks` list in `src/components/Footer.jsx`.
 
 ## Books E-commerce Store App
 
