@@ -63,8 +63,6 @@ export async function POST(request) {
       expand: ["line_items"],
     });
     const order = toOrder(session);
-    // Where the email banner image is served from (this site).
-    const siteUrl = process.env.SITE_URL || new URL(request.url).origin;
     const sends = [];
 
     if (order.email) {
@@ -72,7 +70,7 @@ export async function POST(request) {
         sendOnce(`order-customer/${order.id}`, {
           to: order.email,
           replyTo: businessEmail(),
-          ...customerConfirmationEmail(order, { siteUrl }),
+          ...customerConfirmationEmail(order),
         })
       );
     }
@@ -80,7 +78,7 @@ export async function POST(request) {
       sendOnce(`order-business/${order.id}`, {
         to: businessEmail(),
         replyTo: order.email || undefined,
-        ...businessNotificationEmail(order, { siteUrl }),
+        ...businessNotificationEmail(order),
       })
     );
 

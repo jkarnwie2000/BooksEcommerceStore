@@ -192,8 +192,6 @@ test("both emails carry the store-name banner, in HTML and plain text", async ()
   expect(emails).toHaveLength(2);
   for (const { body } of emails) {
     expect(body.html).toContain('bgcolor="#7342d6"');
-    expect(body.html).toContain('<img src="https://shop.test/email/banner.png"');
-    expect(body.html).toContain(`alt="📚 Julius Gold&#39;s Library - Your online library"`);
     expect(body.html).toMatch(/<td bgcolor="#7342d6"[\s\S]*Julius Gold&#39;s Library/);
     expect(body.text.startsWith("=====================\nJulius Gold's Library\n")).toBe(true);
   }
