@@ -36,49 +36,46 @@
 - 📱 Responsive Design: Works on phones, tablets, desktops
 - ✅ Tested: 61 automated tests with Vitest
 
-## 💳 Stripe Payments & Admin Dashboard Setup
-
-Payments and the admin dashboard use Vercel serverless functions in the `api/` folder, so your Stripe secret key never reaches the browser.
-
-1. Create a [Stripe account](https://dashboard.stripe.com/register) and copy your **test** secret key (`sk_test_...`) from Developers → API keys.
-2. In Vercel → Project → Settings → Environment Variables, add:
-   * `STRIPE_SECRET_KEY` — your Stripe secret key
-   * `ADMIN_EMAIL` and `ADMIN_PASSWORD` — the email address and password for signing in to the `/admin` dashboard
-3. Redeploy. Pay with the test card `4242 4242 4242 4242`, any future expiry date, and any CVC.
-
-### Order confirmation emails
-
-Emails are sent by a Stripe webhook (`/api/stripe-webhook`), either from a Gmail account (no domain needed) or through [Resend](https://resend.com).
-
-1. **Gmail:** turn on 2-Step Verification for the Gmail account, then create an app password at https://myaccount.google.com/apppasswords. Add `SMTP_USER` (the Gmail address) and `SMTP_PASS` (the 16-character app password, no spaces) in Vercel. Optionally add `BUSINESS_EMAIL` if new-order notifications should go to a different address.
-   *Or* **Resend:** add `RESEND_API_KEY`, `EMAIL_FROM` and `BUSINESS_EMAIL`.
-2. In Stripe → Developers → Webhooks, add an endpoint `https://YOUR-SITE/api/stripe-webhook` for the events `checkout.session.completed` and `checkout.session.async_payment_succeeded`, then add its signing secret as `STRIPE_WEBHOOK_SECRET` in Vercel.
-3. Redeploy.
-
-Shipping countries are set in `SHIPPING_COUNTRIES` in `api/_lib/orders.js`.
-
-**Running locally:** `npm start` serves only the React app, so the `/api` routes won't be available. To test payments locally, install the [Vercel CLI](https://vercel.com/docs/cli), create a `.env` file from `.env.example`, and run `vercel dev`.
-
-**Social links:** update the URLs in the `socialLinks` list in `src/components/Footer.jsx`.
-
 ## Books E-commerce Store App
 
 🔗 **Live Demo:** [View Live Website](https://books-ecommerce-gold.vercel.app/)
 
 ## Books E-commerce Store App Run Instructions
 
-A React-based e-commerce website for exploring books, viewing book details, discovering featured and discounted books, and managing a shopping cart. The application uses React Router for navigation and reusable React components to organize the user interface.
+## 1. Project Overview
 
-## Prerequisites
+**Project Name:** Books E-commerce Website
 
-Before installing the project, ensure you have the following installed:
+**Technology Stack:**
+- React
+- JavaScript
+- React Router
+- Node.js
+- npm
+- Vitest
+- Stripe (payment integration)
 
-1. **Node.js:** Install a supported LTS version.
-2. **npm:** Included with Node.js.
-3. **Git:** Required if you plan to clone the repository.
-4. **Visual Studio Code:** Recommended for editing and managing the project.
+**Development Environment:** Visual Studio Code
 
-Verify your installations by running:
+**Operating System:** Windows 10/11
+
+**Node.js Version:** 20.9 or compatible Node.js 20 release
+
+## 2. Prerequisites
+
+Before running the project, ensure the following software is installed:
+
+| Software | Purpose |
+|---|---|
+| Node.js 20.9 | JavaScript runtime |
+| npm | Package and dependency management |
+| Visual Studio Code | Code editor |
+| Git | Version control |
+| Google Chrome | Browser testing |
+
+### Verify Installation
+
+Open your VS Code terminal and execute:
 
 ```bash
 node -v
@@ -86,27 +83,15 @@ npm -v
 git --version
 ```
 
-If these commands display version numbers, the corresponding tools are installed.
+Ensure Node.js and npm are installed correctly before proceeding.
 
-Download Node.js from the official website:
+## 3. Clone or Open the Repository
 
-https://nodejs.org/
-
-Download Git from:
-
-https://git-scm.com/downloads
-
-## Installation and Local Setup
-
-### Step 1: Clone the Repository
-
-If the project is hosted on GitHub, open a terminal and run:
+If cloning from GitHub, open your terminal and execute:
 
 ```bash
-git clone YOUR_REPOSITORY_URL
+git clone YOUR_GITHUB_REPOSITORY_URL
 ```
-
-Replace `YOUR_REPOSITORY_URL` with your actual GitHub repository URL.
 
 Navigate into the project directory:
 
@@ -114,1116 +99,401 @@ Navigate into the project directory:
 cd YOUR_PROJECT_FOLDER
 ```
 
-Replace `YOUR_PROJECT_FOLDER` with the name of the cloned directory.
+Alternatively, if you have already downloaded the project:
 
-**Alternatively:** If you already have the project on your computer, open its root folder in Visual Studio Code.
+1. Open Visual Studio Code.
+2. Select File → Open Folder.
+3. Locate your project directory.
+4. Select the project root folder.
 
-### Step 2: Verify the Project Files
+Ensure you open the root directory containing `package.json` and `package-lock.json`.
 
-Ensure the root directory contains the following files:
+## 4. Install Project Dependencies
 
-```text
-Books-E-commerce-Website/
-├── public/
-├── src/
-├── package.json
-├── package-lock.json
-├── vitest.config.js
-└── README.md
-```
+The project includes both `package.json` and `package-lock.json`, indicating that npm is used for dependency management.
 
-Your project may contain additional files and folders.
-
-### Step 3: Install Dependencies
-
-From the project root directory, run:
-
-```bash
-npm install
-```
-
-This command installs the dependencies declared in `package.json` and updates the local dependency installation.
-
-If you already have a valid `package-lock.json`, you can use the following command for a more reproducible installation:
+From the project root directory, execute:
 
 ```bash
 npm ci
 ```
 
-Use `npm ci` when you want to install the exact dependency versions recorded in the lockfile. It requires `package.json` and `package-lock.json` to be synchronized.
+This command installs the exact dependency versions specified in the lockfile.
 
-**Important:** Run these commands from the directory containing `package.json`.
-
-### Step 4: Start the Development Server
-
-First, inspect the `scripts` section of your `package.json` to identify the correct development command.
-
-For a Create React App project, run:
+If `npm ci` fails because the package files are out of sync, execute:
 
 ```bash
-npm start
+npm install
 ```
 
-For a Vite-based React project, run:
+After installation, npm creates the `node_modules` directory containing the project's dependencies.
+
+## 5. Environment Variables Configuration
+
+The application includes backend API functionality for:
+
+- Stripe checkout sessions.
+- Stripe webhook processing.
+- Order management.
+- Administrative authentication.
+- Password reset functionality.
+- Email notifications.
+- Data storage.
+
+Some of these features may require environment variables.
+
+### Configure Environment Variables
+
+First, check the project root for an existing `.env.example` file.
+
+If one exists, use it as a reference.
+
+Inspect the following backend files for environment variable references:
+
+```text
+api/_lib/auth.js
+api/_lib/blob-json.js
+api/_lib/email.js
+api/create-checkout-session.js
+api/stripe-webhook.js
+```
+
+Look for references to:
+
+```javascript
+process.env
+```
+
+Create a `.env.local` file in the project root if required.
+
+For example, Stripe integrations commonly require:
+
+```env
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+```
+
+These are illustrative variable names. Use the exact names expected by your backend implementation.
+
+**Important Security Notes:**
+
+- Never commit `.env.local` to GitHub.
+- Never expose Stripe secret keys in frontend React components.
+- Never store sensitive backend credentials in frontend-accessible environment variables.
+- Ensure `.env.local` is included in `.gitignore`.
+
+Stripe developer credentials can be obtained from the Stripe Dashboard:
+
+https://dashboard.stripe.com/
+
+## 6. Running the Application Locally
+
+The project contains a React frontend and an `api` directory containing backend endpoints.
+
+The exact development command depends on the scripts configured in `package.json`.
+
+### Step 1: Identify Available Scripts
+
+Open `package.json` and inspect the `scripts` section.
+
+Alternatively, execute:
+
+```bash
+npm run
+```
+
+This displays the available project commands.
+
+### Step 2: Start the React Development Server
+
+If the project uses Vite and has a `dev` script:
 
 ```bash
 npm run dev
 ```
 
-Open the local URL displayed in your terminal. Common addresses are:
+If the project uses Create React App and has a `start` script:
 
-* Create React App: `http://localhost:3000`
-* Vite: `http://localhost:5173`
+```bash
+npm start
+```
 
-The actual address may differ depending on your configuration and port availability.
+Once the development server starts, open the local URL displayed in your terminal.
 
-Keep the terminal running while developing. Most React development servers automatically refresh the browser when you save changes.
+Common development addresses include:
 
-### Step 5: Build for Production
+```text
+http://localhost:5173
+```
 
-To create an optimized production build, use the command supported by your project.
+or:
 
-For Create React App:
+```text
+http://localhost:3000
+```
+
+### Step 3: Start Backend API Functions
+
+The project includes an `api` directory containing serverless-style endpoints.
+
+If the project uses Vercel serverless functions, install the Vercel CLI:
+
+```bash
+npm install -g vercel
+```
+
+Verify installation:
+
+```bash
+vercel --version
+```
+
+From the project root, execute:
+
+```bash
+vercel dev
+```
+
+This starts the local Vercel development environment, allowing the frontend and supported API endpoints to run together.
+
+The first execution may require Vercel authentication or project configuration.
+
+Vercel documentation:
+
+https://vercel.com/docs/cli
+
+**Note:** Use `vercel dev` if the application relies on Vercel serverless API routes. Running the React development server alone may not provide the backend functionality.
+
+## 7. Building the Project for Production
+
+To create an optimized production build, execute:
 
 ```bash
 npm run build
 ```
 
-The generated production files are normally placed in the `build/` directory.
+The output directory depends on the build system:
 
-For Vite:
+- Vite typically generates a `dist` directory.
+- Create React App typically generates a `build` directory.
 
-```bash
-npm run build
-```
+These directories contain the optimized frontend files used for production deployment.
 
-The generated production files are normally placed in the `dist/` directory.
+### Preview the Production Build
 
-**Note:** Although the build command is the same for both setups, the output directory and deployment configuration differ.
-
-### Step 6: Preview or Serve the Production Build
-
-For a Vite project, you can preview the production build locally by running:
+For Vite projects with a configured preview script:
 
 ```bash
 npm run preview
 ```
 
-For a Create React App project, the build output is static and must be served using a suitable static web server.
+This allows you to test the production frontend locally.
 
-For example, if the project uses Create React App and you want a simple local preview, you can run:
+## 8. Running Automated Tests
 
-```bash
-npx serve -s build
-```
+The project includes Vitest configuration and numerous automated test files covering components, checkout functionality, administrative features, and API endpoints.
 
-If prompted to install `serve`, follow the prompt. Alternatively, install it as a development dependency if you expect to use it regularly.
-
-**Important:** The `preview` script is not automatically available in every React project. Use only the commands supported by your `package.json`.
-
-## Environment Variables
-
-The project structure provided does not indicate that environment variables are required. If your application needs configuration values, create an environment file in the project root.
-
-For example:
-
-```text
-Books-E-commerce-Website/
-├── public/
-├── src/
-├── .env
-├── package.json
-└── README.md
-```
-
-### Example `.env` File
-
-For a Vite-based project:
-
-```dotenv
-VITE_APP_NAME=Books E-commerce Website
-```
-
-For a Create React App project:
-
-```dotenv
-REACT_APP_NAME=Books E-commerce Website
-```
-
-Use the variable prefix required by your build tool:
-
-* **Vite:** `VITE_`
-* **Create React App:** `REACT_APP_`
-
-For example, a Vite application can read its variable using:
-
-```javascript
-const appName = import.meta.env.VITE_APP_NAME;
-```
-
-A Create React App application can read its variable using:
-
-```javascript
-const appName = process.env.REACT_APP_NAME;
-```
-
-Do not mix these access patterns. Use the one that matches your project configuration.
-
-If you add or modify environment variables, restart the development server so the changes take effect.
-
-**Security note:** Frontend environment variables are embedded in client-side code when applicable. Never put passwords, private API keys, database credentials, or other secrets in variables exposed to the browser.
-
-If the website uses an external API in the future, configure its public endpoint using the appropriate environment variable convention.
-
-### Environment File Security
-
-Add the following entries to `.gitignore` if they are not already present:
-
-```gitignore
-.env
-.env.local
-.env.*.local
-```
-
-If your application requires environment variables, consider providing a `.env.example` file containing placeholder values rather than real credentials.
-
-## Running Tests
-
-The project includes test files for several components and pages.
-
-Because `vitest.config.js` is present, Vitest may be configured as the testing framework. Check the `scripts` section of `package.json` before running tests.
-
-If a test script is configured, run:
-
-```bash
-npm test
-```
-
-If the project defines a separate Vitest script, run:
-
-```bash
-npm run test
-```
-
-If Vitest is installed but no test script exists, you can try:
+To execute the complete test suite:
 
 ```bash
 npx vitest run
 ```
 
-To run Vitest in watch mode:
+To run tests in watch mode:
 
 ```bash
 npx vitest
 ```
 
-If the tests fail because of missing dependencies or configuration, verify that Vitest and the appropriate React testing libraries are installed and configured.
-
-## Project Structure
-
-```text
-public/
-├── assets/             # Book covers, SVG illustrations, and other assets
-├── favicon.ico
-├── index.html
-├── manifest.json
-├── robots.txt
-└── logo192.png
-
-src/
-├── components/
-│   ├── ui/
-│   │   ├── Book.jsx
-│   │   ├── Highlight.jsx
-│   │   ├── Price.jsx
-│   │   └── rating.jsx
-│   ├── Discounted.jsx
-│   ├── Explore.jsx
-│   ├── Featured.jsx
-│   ├── Footer.jsx
-│   ├── Highlights.jsx
-│   ├── Landing.jsx
-│   └── Nav.jsx
-├── pages/
-│   ├── BookInfo.jsx
-│   ├── Books.jsx
-│   ├── Cart.jsx
-│   └── Home.jsx
-├── App.js
-├── data.js
-├── index.css
-├── index.js
-└── reportWebVitals.js
-
-package.json
-package-lock.json
-vitest.config.js
-README.md
-```
-
-The project also contains component and page test files, including tests for the book display, navigation, shopping cart, and other interface components.
-
-### Important Directories
-
-* **`public/assets/`** — Stores book cover images, illustrations, and other static assets.
-* **`src/components/`** — Contains reusable UI components and sections.
-* **`src/components/ui/`** — Contains smaller components for displaying books, prices, highlights, and ratings.
-* **`src/pages/`** — Contains page-level components such as the home page, books listing, book details, and cart.
-* **`src/App.js`** — Typically defines the main application component and route configuration.
-* **`src/data.js`** — Stores application data, depending on the implementation.
-* **`src/index.js`** — Typically serves as the application's entry point.
-* **`vitest.config.js`** — Configures Vitest when the project uses it.
-
-## Troubleshooting
-
-### 1. `npm` or `node` Is Not Recognized
-
-**Possible cause:** Node.js is not installed correctly or is missing from your system's PATH.
-
-**Solution:**
-
-1. Install Node.js from https://nodejs.org/.
-2. Close and reopen your terminal.
-3. Restart Visual Studio Code if necessary.
-4. Verify the installation:
-
-```bash
-node -v
-npm -v
-```
-
-### 2. Dependencies Fail to Install
-
-**Possible cause:** An outdated lockfile, incomplete installation, or incompatible Node.js version.
-
-**Solution:**
-
-First, try:
-
-```bash
-npm install
-```
-
-If the project has a valid, synchronized lockfile, you can instead try:
-
-```bash
-npm ci
-```
-
-Check the error output before deleting or modifying dependency files. Avoid deleting `package-lock.json` unless you have a specific reason to regenerate it.
-
-### 3. `npm start` Does Not Work
-
-**Possible cause:** Your project does not define a `start` script.
-
-**Solution:**
-
-Open `package.json` and inspect the `scripts` section.
-
-Run the configured development command. For example:
-
-```bash
-npm run dev
-```
-
-Alternatively, if the project uses Create React App and has a `start` script:
-
-```bash
-npm start
-```
-
-### 4. The Browser Displays a Blank Page
-
-**Possible causes:**
-
-* JavaScript errors.
-* Incorrect component imports.
-* Incorrect React Router configuration.
-* Missing assets.
-* Runtime errors in the application.
-
-**Solution:**
-
-1. Open the browser's developer tools.
-2. Select the **Console** tab.
-3. Check for errors.
-4. Verify that imported files exist and that their names and paths match.
-5. Check the terminal for compilation errors.
-6. Confirm that the application's entry point renders the correct React component.
-
-### 5. Book Cover Images Do Not Display
-
-**Possible cause:** Incorrect image paths or mismatched filenames.
-
-**Solution:**
-
-Verify that the image exists in `public/assets/`.
-
-For a file named `book-1.jpeg`, a typical public asset path is:
-
-```jsx
-<img src="/assets/book-1.jpeg" alt="Book cover" />
-```
-
-Use the exact filename, including its extension and capitalization.
-
-Remember that filenames containing spaces must also match the actual files. For example:
-
-```jsx
-<img src="/assets/atomic habits.jpg" alt="Atomic Habits book cover" />
-```
-
-### 6. React Router Pages Return a 404 Error
-
-**Possible cause:** The web server is not configured to serve the application's entry HTML file for client-side routes.
-
-**Solution:**
-
-Verify that your routes are correctly configured in the React application.
-
-When deploying the website, configure your hosting provider to rewrite supported application routes to the appropriate entry HTML file. The exact configuration depends on your hosting platform and build tool.
-
-### 7. Tests Fail to Run
-
-**Possible cause:** Missing testing dependencies, an incorrect test script, or a configuration mismatch.
-
-**Solution:**
-
-1. Check `package.json` for the configured test script.
-2. Verify that Vitest and any required React testing libraries are installed.
-3. Confirm that `vitest.config.js` is configured for your project's test environment.
-4. Run:
-
-```bash
-npx vitest run
-```
-
-Use this command only if Vitest is installed or can be resolved through the project's dependencies.
-
-### 8. The Development Server Port Is Already in Use
-
-**Possible cause:** Another application is using the requested port.
-
-**Solution:**
-
-Stop the other development server if it is no longer needed, or use another port supported by your development tool.
-
-Vite can be started on a different port using:
-
-```bash
-npm run dev -- --port 5174
-```
-
-This command assumes the project uses Vite and defines a compatible `dev` script.
-
-## Useful Commands
-
-| Command           | Purpose                                                |
-| ----------------- | ------------------------------------------------------ |
-| `npm install`     | Install project dependencies                           |
-| `npm ci`          | Install dependencies from the lockfile                 |
-| `npm start`       | Start a configured Create React App development server |
-| `npm run dev`     | Start a configured Vite development server             |
-| `npm run build`   | Create a production build                              |
-| `npm test`        | Run tests if the corresponding script is configured    |
-| `npx vitest run`  | Run Vitest tests once, if Vitest is available          |
-| `npm run preview` | Preview a Vite production build                        |
-
-## Contributing
-
-Contributions and improvements are welcome.
-
-1. Fork the repository.
-2. Create a feature branch.
-3. Make your changes.
-4. Run the available tests.
-5. Submit a pull request describing your changes.
-
-# Books E-commerce Website
-
-A React-based e-commerce website for exploring books, viewing book details, discovering featured and discounted books, and managing a shopping cart. The application uses React Router for navigation and reusable React components to organize the user interface.
-
-## Features
-
-* Browse and explore available books.
-* View individual book details.
-* Discover featured and discounted books.
-* Navigate between pages using React Router.
-* Add and manage books in a shopping cart.
-* Display book prices and ratings.
-* Enjoy a responsive, component-based user interface.
-* Run component tests using the project's configured testing framework.
-
-## Tech Stack
-
-* **React** — Building the user interface.
-* **JavaScript (JSX)** — Application logic and components.
-* **React Router** — Client-side navigation.
-* **CSS** — Styling and layout.
-* **Vitest** — Testing, if configured in the project.
-* **npm** — Package management.
-
-## Prerequisites
-
-Before installing the project, ensure you have the following installed:
-
-1. **Node.js:** Install a supported LTS version.
-2. **npm:** Included with Node.js.
-3. **Git:** Required if you plan to clone the repository.
-4. **Visual Studio Code:** Recommended for editing and managing the project.
-
-Verify your installations by running:
-
-```bash
-node -v
-npm -v
-git --version
-```
-
-If these commands display version numbers, the corresponding tools are installed.
-
-Download Node.js from the official website:
-
-https://nodejs.org/
-
-Download Git from:
-
-https://git-scm.com/downloads
-
-## Installation and Local Setup
-
-### Step 1: Clone the Repository
-
-If the project is hosted on GitHub, open a terminal and run:
-
-```bash
-git clone YOUR_REPOSITORY_URL
-```
-
-Replace `YOUR_REPOSITORY_URL` with your actual GitHub repository URL.
-
-Navigate into the project directory:
-
-```bash
-cd YOUR_PROJECT_FOLDER
-```
-
-Replace `YOUR_PROJECT_FOLDER` with the name of the cloned directory.
-
-**Alternatively:** If you already have the project on your computer, open its root folder in Visual Studio Code.
-
-### Step 2: Verify the Project Files
-
-Ensure the root directory contains the following files:
-
-```text
-Books-E-commerce-Website/
-├── public/
-├── src/
-├── package.json
-├── package-lock.json
-├── vitest.config.js
-└── README.md
-```
-
-Your project may contain additional files and folders.
-
-### Step 3: Install Dependencies
-
-From the project root directory, run:
-
-```bash
-npm install
-```
-
-This command installs the dependencies declared in `package.json` and updates the local dependency installation.
-
-If you already have a valid `package-lock.json`, you can use the following command for a more reproducible installation:
-
-```bash
-npm ci
-```
-
-Use `npm ci` when you want to install the exact dependency versions recorded in the lockfile. It requires `package.json` and `package-lock.json` to be synchronized.
-
-**Important:** Run these commands from the directory containing `package.json`.
-
-### Step 4: Start the Development Server
-
-First, inspect the `scripts` section of your `package.json` to identify the correct development command.
-
-For a Create React App project, run:
-
-```bash
-npm start
-```
-
-For a Vite-based React project, run:
-
-```bash
-npm run dev
-```
-
-Open the local URL displayed in your terminal. Common addresses are:
-
-* Create React App: `http://localhost:3000`
-* Vite: `http://localhost:5173`
-
-The actual address may differ depending on your configuration and port availability.
-
-Keep the terminal running while developing. Most React development servers automatically refresh the browser when you save changes.
-
-### Step 5: Build for Production
-
-To create an optimized production build, use the command supported by your project.
-
-For Create React App:
-
-```bash
-npm run build
-```
-
-The generated production files are normally placed in the `build/` directory.
-
-For Vite:
-
-```bash
-npm run build
-```
-
-The generated production files are normally placed in the `dist/` directory.
-
-**Note:** Although the build command is the same for both setups, the output directory and deployment configuration differ.
-
-### Step 6: Preview or Serve the Production Build
-
-For a Vite project, you can preview the production build locally by running:
-
-```bash
-npm run preview
-```
-
-For a Create React App project, the build output is static and must be served using a suitable static web server.
-
-For example, if the project uses Create React App and you want a simple local preview, you can run:
-
-```bash
-npx serve -s build
-```
-
-If prompted to install `serve`, follow the prompt. Alternatively, install it as a development dependency if you expect to use it regularly.
-
-**Important:** The `preview` script is not automatically available in every React project. Use only the commands supported by your `package.json`.
-
-## Environment Variables
-
-The project structure provided does not indicate that environment variables are required. If your application needs configuration values, create an environment file in the project root.
-
-For example:
-
-```text
-Books-E-commerce-Website/
-├── public/
-├── src/
-├── .env
-├── package.json
-└── README.md
-```
-
-### Example `.env` File
-
-For a Vite-based project:
-
-```dotenv
-VITE_APP_NAME=Books E-commerce Website
-```
-
-For a Create React App project:
-
-```dotenv
-REACT_APP_NAME=Books E-commerce Website
-```
-
-Use the variable prefix required by your build tool:
-
-* **Vite:** `VITE_`
-* **Create React App:** `REACT_APP_`
-
-For example, a Vite application can read its variable using:
-
-```javascript
-const appName = import.meta.env.VITE_APP_NAME;
-```
-
-A Create React App application can read its variable using:
-
-```javascript
-const appName = process.env.REACT_APP_NAME;
-```
-
-Do not mix these access patterns. Use the one that matches your project configuration.
-
-If you add or modify environment variables, restart the development server so the changes take effect.
-
-**Security note:** Frontend environment variables are embedded in client-side code when applicable. Never put passwords, private API keys, database credentials, or other secrets in variables exposed to the browser.
-
-If the website uses an external API in the future, configure its public endpoint using the appropriate environment variable convention.
-
-### Environment File Security
-
-Add the following entries to `.gitignore` if they are not already present:
-
-```gitignore
-.env
-.env.local
-.env.*.local
-```
-
-If your application requires environment variables, consider providing a `.env.example` file containing placeholder values rather than real credentials.
-
-## Running Tests
-
-The project includes test files for several components and pages.
-
-Because `vitest.config.js` is present, Vitest may be configured as the testing framework. Check the `scripts` section of `package.json` before running tests.
-
-If a test script is configured, run:
-
-```bash
-npm test
-```
-
-If the project defines a separate Vitest script, run:
-
-```bash
-npm run test
-```
-
-If Vitest is installed but no test script exists, you can try:
-
-```bash
-npx vitest run
-```
-
-To run Vitest in watch mode:
-
-```bash
-npx vitest
-```
-
-If the tests fail because of missing dependencies or configuration, verify that Vitest and the appropriate React testing libraries are installed and configured.
-
-## Project Structure
-
-```text
-public/
-├── assets/             # Book covers, SVG illustrations, and other assets
-├── favicon.ico
-├── index.html
-├── manifest.json
-├── robots.txt
-└── logo192.png
-
-src/
-├── components/
-│   ├── ui/
-│   │   ├── Book.jsx
-│   │   ├── Highlight.jsx
-│   │   ├── Price.jsx
-│   │   └── rating.jsx
-│   ├── Discounted.jsx
-│   ├── Explore.jsx
-│   ├── Featured.jsx
-│   ├── Footer.jsx
-│   ├── Highlights.jsx
-│   ├── Landing.jsx
-│   └── Nav.jsx
-├── pages/
-│   ├── BookInfo.jsx
-│   ├── Books.jsx
-│   ├── Cart.jsx
-│   └── Home.jsx
-├── App.js
-├── data.js
-├── index.css
-├── index.js
-└── reportWebVitals.js
-
-package.json
-package-lock.json
-vitest.config.js
-README.md
-```
-
-The project also contains component and page test files, including tests for the book display, navigation, shopping cart, and other interface components.
-
-### Important Directories
-
-* **`public/assets/`** — Stores book cover images, illustrations, and other static assets.
-* **`src/components/`** — Contains reusable UI components and sections.
-* **`src/components/ui/`** — Contains smaller components for displaying books, prices, highlights, and ratings.
-* **`src/pages/`** — Contains page-level components such as the home page, books listing, book details, and cart.
-* **`src/App.js`** — Typically defines the main application component and route configuration.
-* **`src/data.js`** — Stores application data, depending on the implementation.
-* **`src/index.js`** — Typically serves as the application's entry point.
-* **`vitest.config.js`** — Configures Vitest when the project uses it.
-
-## Troubleshooting
-
-### 1. `npm` or `node` Is Not Recognized
-
-**Possible cause:** Node.js is not installed correctly or is missing from your system's PATH.
-
-**Solution:**
-
-1. Install Node.js from https://nodejs.org/.
-2. Close and reopen your terminal.
-3. Restart Visual Studio Code if necessary.
-4. Verify the installation:
-
-```bash
-node -v
-npm -v
-```
-
-### 2. Dependencies Fail to Install
-
-**Possible cause:** An outdated lockfile, incomplete installation, or incompatible Node.js version.
-
-**Solution:**
-
-First, try:
-
-```bash
-npm install
-```
-
-If the project has a valid, synchronized lockfile, you can instead try:
-
-```bash
-npm ci
-```
-
-Check the error output before deleting or modifying dependency files. Avoid deleting `package-lock.json` unless you have a specific reason to regenerate it.
-
-### 3. `npm start` Does Not Work
-
-**Possible cause:** Your project does not define a `start` script.
-
-**Solution:**
-
-Open `package.json` and inspect the `scripts` section.
-
-Run the configured development command. For example:
-
-```bash
-npm run dev
-```
-
-Alternatively, if the project uses Create React App and has a `start` script:
-
-```bash
-npm start
-```
-
-### 4. The Browser Displays a Blank Page
-
-**Possible causes:**
-
-* JavaScript errors.
-* Incorrect component imports.
-* Incorrect React Router configuration.
-* Missing assets.
-* Runtime errors in the application.
-
-**Solution:**
-
-1. Open the browser's developer tools.
-2. Select the **Console** tab.
-3. Check for errors.
-4. Verify that imported files exist and that their names and paths match.
-5. Check the terminal for compilation errors.
-6. Confirm that the application's entry point renders the correct React component.
-
-### 5. Book Cover Images Do Not Display
-
-**Possible cause:** Incorrect image paths or mismatched filenames.
-
-**Solution:**
-
-Verify that the image exists in `public/assets/`.
-
-For a file named `book-1.jpeg`, a typical public asset path is:
-
-```jsx
-<img src="/assets/book-1.jpeg" alt="Book cover" />
-```
-
-Use the exact filename, including its extension and capitalization.
-
-Remember that filenames containing spaces must also match the actual files. For example:
-
-```jsx
-<img src="/assets/atomic habits.jpg" alt="Atomic Habits book cover" />
-```
-
-### 6. React Router Pages Return a 404 Error
-
-**Possible cause:** The web server is not configured to serve the application's entry HTML file for client-side routes.
-
-**Solution:**
-
-Verify that your routes are correctly configured in the React application.
-
-When deploying the website, configure your hosting provider to rewrite supported application routes to the appropriate entry HTML file. The exact configuration depends on your hosting platform and build tool.
-
-### 7. Tests Fail to Run
-
-**Possible cause:** Missing testing dependencies, an incorrect test script, or a configuration mismatch.
-
-**Solution:**
-
-1. Check `package.json` for the configured test script.
-2. Verify that Vitest and any required React testing libraries are installed.
-3. Confirm that `vitest.config.js` is configured for your project's test environment.
-4. Run:
-
-```bash
-npx vitest run
-```
-
-Use this command only if Vitest is installed or can be resolved through the project's dependencies.
-
-### 8. The Development Server Port Is Already in Use
-
-**Possible cause:** Another application is using the requested port.
-
-**Solution:**
-
-Stop the other development server if it is no longer needed, or use another port supported by your development tool.
-
-Vite can be started on a different port using:
-
-```bash
-npm run dev -- --port 5174
-```
-
-This command assumes the project uses Vite and defines a compatible `dev` script.
-
-## Useful Commands
-
-| Command           | Purpose                                                |
-| ----------------- | ------------------------------------------------------ |
-| `npm install`     | Install project dependencies                           |
-| `npm ci`          | Install dependencies from the lockfile                 |
-| `npm start`       | Start a configured Create React App development server |
-| `npm run dev`     | Start a configured Vite development server             |
-| `npm run build`   | Create a production build                              |
-| `npm test`        | Run tests if the corresponding script is configured    |
-| `npx vitest run`  | Run Vitest tests once, if Vitest is available          |
-| `npm run preview` | Preview a Vite production build                        |
-
-## Contributing
-
-Contributions and improvements are welcome.
-
-1. Fork the repository.
-2. Create a feature branch.
-3. Make your changes.
-4. Run the available tests.
-5. Submit a pull request describing your changes.
-
-## License
-
-Add the appropriate license information for your project here.
-
-## ✅ Testing
-
-This project uses **Vitest** and **React Testing Library** to test the functionality, rendering, and behavior of the Books E-commerce Website. The test suite contains **15 test files** located in the `src` directory, covering reusable UI components, page components, navigation, and key shopping interface elements.
-
-### Testing Tools
-
-* **[Vitest](https://vitest.dev/)** — A fast testing framework compatible with Vite-style testing workflows. It provides the test runner, assertions, and test execution environment.
-* **[React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)** — Tests React components from the user's perspective by checking rendered content and interacting with elements.
-* **[@testing-library/jest-dom](https://github.com/testing-library/jest-dom)** — Provides additional DOM assertions, such as checking whether an element is present in the document, if configured in the project.
-
-### Test Coverage
-
-The project contains 15 test files designed to verify the rendering and behavior of the website's main components and pages.
-
-| Test File             | Component or Page | Testing Focus                                                                  |
-| --------------------- | ----------------- | ------------------------------------------------------------------------------ |
-| `Book.test.jsx`       | `Book.jsx`        | Verifies that book information, images, titles, and prices render correctly.   |
-| `BookInfo.test.jsx`   | `BookInfo.jsx`    | Tests the book details page and the display of individual book information.    |
-| `Books.test.jsx`      | `Books.jsx`       | Checks that the books page renders its content and book listings correctly.    |
-| `Cart.test.jsx`       | `Cart.jsx`        | Tests the shopping cart interface, including its content and empty-cart state. |
-| `Discounted.test.jsx` | `Discounted.jsx`  | Verifies that discounted books and their pricing information render correctly. |
-| `Explore.test.jsx`    | `Explore.jsx`     | Checks that the Explore section and its associated content render correctly.   |
-| `Featured.test.jsx`   | `Featured.jsx`    | Tests the display of featured books and their associated information.          |
-| `Footer.test.jsx`     | `Footer.jsx`      | Verifies that the footer renders its expected content and links.               |
-| `Highlight.test.jsx`  | `Highlight.jsx`   | Tests the rendering of individual highlight elements.                          |
-| `Highlights.test.jsx` | `Highlights.jsx`  | Checks that the Highlights section displays its content correctly.             |
-| `Home.test.jsx`       | `Home.jsx`        | Tests the home page and verifies that its main content renders correctly.      |
-| `Landing.test.jsx`    | `Landing.jsx`     | Checks the landing section and its introductory content.                       |
-| `Nav.test.jsx`        | `Nav.jsx`         | Tests the navigation component and the rendering of navigation links.          |
-| `Price.test.jsx`      | `Price.jsx`       | Verifies that book prices are displayed in the expected format.                |
-| `Rating.test.jsx`     | `rating.jsx`      | Tests the rendering of book ratings.                                           |
-
-**Note:** The testing focus described above is based on the component names and project structure. The exact assertions and behaviors covered by each test depend on the implementation of the corresponding test files.
-
-### Running the Tests
-
-Follow these steps to execute the test suite locally.
-
-#### 1. Install Dependencies
-
-Make sure you have [Node.js](https://nodejs.org/) installed. Open a terminal in the project's root directory and run:
-
-```bash
-npm install
-```
-
-This installs the project dependencies defined in `package.json`, including the testing libraries configured for the project.
-
-#### 2. Run All Tests
-
-Execute the following command to run the test suite:
-
-```bash
-npx vitest run
-```
-
-This runs the available Vitest tests once and exits after execution. The terminal displays the results, including the number of test files and individual tests that passed or failed.
-
-Alternatively, if the project defines a test script in `package.json`, you can run:
-
-```bash
-npm test
-```
-
-Use this command only if the `test` script is configured to invoke Vitest.
-
-#### 3. Run Tests in Watch Mode
-
-To run Vitest interactively and rerun tests when relevant files change, use:
-
-```bash
-npx vitest
-```
-
-Watch mode is useful during development because it provides feedback as you modify components and tests.
-
-#### 4. Run a Specific Test File
-
-To execute an individual test file, provide its path:
-
-```bash
-npx vitest run src/Book.test.jsx
-```
-
-For example, to test the shopping cart page only:
+To execute an individual test file:
 
 ```bash
 npx vitest run src/Cart.test.jsx
 ```
 
-You can replace the filename with any of the other test files listed above.
+The test suite helps verify application functionality and identify regressions during development.
 
-### Test Configuration
+## 9. VS Code Debugging Configuration
 
-The project includes a `vitest.config.js` file at the root of the repository. This file contains the Vitest configuration used by the test runner.
+To debug the React frontend directly from Visual Studio Code, create a `.vscode` directory in the project root.
 
-The project also uses React Testing Library to render components and inspect their output. Depending on the configuration, a DOM testing environment such as `jsdom` and a setup file for `@testing-library/jest-dom` may be required.
+Inside that directory, create a file named:
 
-Ensure that the configuration supports JSX and that the required testing dependencies are installed before running the suite.
+```text
+launch.json
+```
 
-### Testing Goals
+For a Vite project running on port 5173, use:
 
-The test suite helps verify that:
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug React Application",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src"
+    }
+  ]
+}
+```
 
-* Reusable UI components render their expected content.
-* Book titles, images, prices, and ratings display correctly.
-* The home page and book listing pages render their main sections.
-* The shopping cart displays its expected content and empty state.
-* Navigation elements and page-level components render as intended.
-* Component changes can be checked for regressions during development.
+For Create React App, change the URL to:
 
-### Expected Results
+```text
+http://localhost:3000
+```
 
-When the tests pass, Vitest reports successful test files and test cases in the terminal. If a test fails, review the error message to identify the failing assertion or component, make the necessary changes, and rerun the affected test.
+### Starting the Debugger
 
-**Testing status:** The repository contains 15 test files. Run the test suite locally to verify the current results before reporting that all tests pass.
+1. Open Visual Studio Code.
+2. Select Run and Debug from the left sidebar.
+3. Select Debug React Application.
+4. Click the green Start button.
+5. Chrome should launch with your local application.
 
+### Setting Breakpoints
 
-## Available Scripts
+Open any React component, such as:
 
-In the project directory, you can run:
+```text
+src/components/ui/Book.jsx
+```
 
-### `npm start`
+Click beside a line number to create a breakpoint.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+You can then inspect variables, step through JavaScript execution, and troubleshoot runtime errors.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Note: This configuration covers frontend browser debugging. Backend API debugging requires a separate Node.js debugger configuration.
 
-### `npm test`
+## 10. Troubleshooting
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Issue | Recommended Solution |
+|---|---|
+| Node.js is not recognized | Install Node.js and restart VS Code. |
+| npm is not recognized | Verify Node.js installation and PATH configuration. |
+| npm ci fails | Check whether package.json and package-lock.json are synchronized. |
+| Dependencies are missing | Run npm ci or npm install. |
+| Development server fails | Check available scripts using npm run. |
+| Application displays a blank page | Inspect the browser console and VS Code terminal. |
+| API endpoints return 404 | Verify whether Vercel development mode is required. |
+| Stripe checkout fails | Verify Stripe credentials and environment variables. |
+| Admin authentication fails | Check backend authentication configuration. |
+| Tests fail | Verify Vitest configuration and required environment variables. |
+| Images do not display | Verify image paths inside public/assets. |
 
-### `npm run build`
+## 11. Quick Reference: Essential Commands
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+| Task | Command |
+|---|---|
+| Check Node.js version | `node -v` |
+| Check npm version | `npm -v` |
+| Install dependencies | `npm ci` |
+| Alternative dependency installation | `npm install` |
+| Display available scripts | `npm run` |
+| Start Vite development server | `npm run dev` |
+| Start Create React App | `npm start` |
+| Start Vercel development server | `vercel dev` |
+| Build production frontend | `npm run build` |
+| Preview Vite production build | `npm run preview` |
+| Run automated tests | `npx vitest run` |
+| Run tests in watch mode | `npx vitest` |
+| Install Vercel CLI | `npm install -g vercel` |
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 12. Recommended Development Workflow
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### First-Time Installation
 
-### `npm run eject`
+Execute the following commands from the project root:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+# Install project dependencies
+npm ci
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Start the local development environment
+vercel dev
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The second command assumes the project uses Vercel serverless functions and has been configured for local development.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Subsequent Development Sessions
 
-## Learn More
+Start the application:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+vercel dev
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Before Committing Changes
 
-### Code Splitting
+Run the automated tests:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```bash
+npx vitest run
+```
 
-### Analyzing the Bundle Size
+Build the production frontend:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```bash
+npm run build
+```
 
-### Making a Progressive Web App
+Resolve any failing tests or build errors before committing your changes.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## 13. Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```text
+├── api
+│   ├── _lib
+│   │   ├── auth.js
+│   │   ├── blob-json.js
+│   │   ├── deleted-orders.js
+│   │   ├── email.js
+│   │   ├── orders.js
+│   │   └── sent-emails.js
+│   ├── admin
+│   │   ├── forgot-password.js
+│   │   ├── orders.js
+│   │   └── reset-password.js
+│   ├── create-checkout-session.js
+│   └── stripe-webhook.js
+│
+├── public
+│   ├── assets
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
+│
+├── src
+│   ├── components
+│   ├── pages
+│   ├── App.js
+│   ├── index.css
+│   ├── index.js
+│   └── [Automated Test Files]
+│
+├── booksecommercestoreproject.png
+├── package-lock.json
+├── package.json
+├── README.md
+└── vitest.config.js
+```
 
-### Deployment
+## 14. Additional Notes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- The project uses npm for dependency management.
+- React components and application pages are organized inside `src`.
+- Static assets and book images are stored inside `public/assets`.
+- Backend API endpoints are organized inside `api`.
+- Vitest is configured for automated testing.
+- Stripe integration provides payment-processing functionality.
+- Environment variables must be configured before using backend services that require external credentials.
 
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# react-good-ecommerce-tutorial
-
-
-### Completed React Testing Library and Vitest tests: 
-
-This project uses Vitest and React Testing Library, includes component, interaction, and mocked component pages and UIs testing, and these tests confirm mocked user data renders correctly without making a real network request. To run tests, type 'npm test' in the integrated terminal.
+**Important:** Verify the actual scripts in `package.json` and required environment variables in the backend source files before running the application. The development, build, and debugging commands above depend on the project's actual configuration.
