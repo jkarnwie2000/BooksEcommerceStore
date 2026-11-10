@@ -46,15 +46,6 @@
 
 **Project Name:** Books E-commerce Website
 
-**Technology Stack:**
-- React
-- JavaScript
-- React Router
-- Node.js
-- npm
-- Vitest
-- Stripe (payment integration)
-
 **Development Environment:** Visual Studio Code
 
 **Operating System:** Windows 10/11
