@@ -20,14 +20,21 @@
   
 ### 🚀 Key Features
 
-*  📚 Interactive Shopping Cart: Allows customers to select books, add up to 99 items to their cart, and manage their purchases with ease.
-*  ⚡ Dynamic Book Sorting: Enables shoppers to sort books by price and customer ratings for a more personalized shopping experience.
-*  🎯 Automated Price Calculation: Automatically calculates the subtotal, sales tax, and total purchase cost for accurate, real-time checkout estimates.
-*  💳 Stripe Checkout: Secure card payments through Stripe, with prices verified on the server.
-*  📦 Shipping Details: Customers enter their delivery address and phone number at checkout.
-*  📧 Order Emails: Customers get an order confirmation email, and the business gets a new-order notification.
-*  📊 Admin Dashboard: A password-protected `/admin` page showing revenue, orders (with shipping addresses), books sold, and the catalog, pulled live from Stripe. Transactions can be deleted from the dashboard.
-*  🔗 Social Links: Social media icons in the site footer.
+- 📚 Book Catalog: Browse featured, discounted, and recommended books
+- 🔃 Smart Sorting: Sort books by price or rating
+- 🛒 Shopping Cart: Add books, adjust quantities, remove items
+- 💾 Saved Cart: Cart stays put between visits
+- 🧮 Live Totals: Subtotal, tax, and total update instantly
+- 💳 Stripe Checkout: Secure card, Apple Pay, Google Pay
+- 📦 Shipping Details: Customers enter address and phone
+- 📧 Order Emails: Confirmations sent to customer and business
+- 📊 Admin Dashboard: Revenue, orders, books sold, catalog sales
+- 🗑️ Transaction Management: Delete transactions from the dashboard
+- 🔐 Secure Admin Login: Email and password sign-in
+- 🔑 Password Reset: One-time, expiring email reset links
+- 🔗 Social Links: Footer links to social profiles
+- 📱 Responsive Design: Works on phones, tablets, desktops
+- ✅ Tested: 61 automated tests with Vitest
 
 ## 💳 Stripe Payments & Admin Dashboard Setup
 
