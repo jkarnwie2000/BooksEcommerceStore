@@ -5,11 +5,19 @@
 ![Books E-commerce Store Project](./booksecommercestoreproject.png)
 
 ## 🛠️ Tech Stack
-
-* React — User interface development.
-* JavaScript (ES6+) — Interactive functionality.
-* React Router — Handles navigation between pages or views.
-
+- React 19: component-based user interface
+- React Router: client-side page navigation
+- JavaScript (ES6+): interactive app functionality
+- CSS3: responsive custom styling
+- Font Awesome: interface and social icons
+- Stripe Checkout: secure card payments, shipping addresses
+- Vercel Serverless Functions: backend API endpoints
+- Vercel Blob: private admin data storage
+- Nodemailer + Gmail SMTP: order confirmation emails
+- Node.js crypto: password hashing, secure tokens
+- Vitest + React Testing Library: automated tests
+- Vercel: hosting and continuous deployment
+  
 ### 🚀 Key Features
 
 *  📚 Interactive Shopping Cart: Allows customers to select books, add up to 99 items to their cart, and manage their purchases with ease.
